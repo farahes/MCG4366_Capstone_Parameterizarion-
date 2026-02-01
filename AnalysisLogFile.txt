@@ -1,0 +1,13 @@
+/***************************************/
+/          WORKING ANALYSIS LOG         /
+/***************************************/
+
+Patient body weight: 70.00 kg
+Patient height: 1.70 m
+
+Maximum Joint Reaction Force and Moment:
+JRF = 715.86 N
+JRF_x = -78.10 N
+JRF_y = -711.59 N
+JRM = 78.45 Nm
+
