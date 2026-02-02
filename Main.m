@@ -21,20 +21,28 @@ properties (Constant)
     n_frame = 2;
     n_shaft = 2.5;
 
-    % MATERIAL PROPERTIES
+    % SHAFT MATERIALS
 
     % 1045 HR Carbon Steel
-    Sy_St = 310*1000000; % [Pa] yield strength
-    Su_St = 565*1000000; % [Pa] ultimate strength
-    E_St = 200*1000000000; % [GPa] Young's Modulus
-    nu_St = 0.29;   % Poisson's ratio
+    Sy_s = 310*1000000; % [Pa] yield strength
+    Su_s = 565*1000000; % [Pa] ultimate strength
+    E_s = 200*1000000000; % [Pa] Young's Modulus
+    nu_s = 0.29;   % Poisson's ratio
+
+    % FRAME MATERIALS
 
     % 6061 T6 Aluminum
-    Sy_Al = 276*1000000;    % [Pa] yield strength
-    Su_Al = 310*1000000;    % [Pa] ultimate strength
-    E_Al = 68.9*1000000000; % [Pa] Young's Modulus
-    nu_Al = 0.33;   % Poisson's ratio
-    
+    Sy_fr = 276*1000000;    % [Pa] yield strength
+    Su_fr = 310*1000000;    % [Pa] ultimate strength
+    E_fr = 68.9*1000000000; % [Pa] Young's Modulus
+    nu_fr = 0.33;   % Poisson's ratio
+    %{
+    % 1010 Carbon Steel
+    Sy_fr = 365*1000000;    % [Pa] yield strength
+    Su_fr = 305*1000000;    % [Pa] ultimate strength
+    E_fr = 190*1000000000; % [Pa] Young's Modulus
+    nu_fr = 0.27;   % Poisson's ratio
+    %}
 end
     
 methods (Static)
@@ -65,9 +73,9 @@ function displayTable = displayResults(results)
             'd_isu'
             't_su'
             'L_fr'
-            %'a'
-            %'b'
-            %'t_lp'
+            'a'
+            'b'
+            't_lp'
         }, ...
         {
             'Large diamer of the shaft'
@@ -79,9 +87,9 @@ function displayTable = displayResults(results)
             'Inner diameter of the supports'
             'Thickness of the supports'
             'Length of the frame legs'
-            %'Frame leg cross section, long dimension (width)'
-            %'Frame leg cross section, short dimension (thickness)'
-            %'Thickness of the lip'
+            'Frame leg cross section, long dimension (width)'
+            'Frame leg cross section, short dimension (thickness)'
+            'Thickness of the lip'
         }, ...
         {
             results.D_s
@@ -93,9 +101,9 @@ function displayTable = displayResults(results)
             results.d_isu 
             results.t_su 
             results.L_fr 
-            %results.a 
-            %results.b 
-            %results.t_lp
+            results.a 
+            results.b 
+            results.t_lp
         }, ...
         {
             'm'
@@ -107,9 +115,9 @@ function displayTable = displayResults(results)
             'm'
             'm'
             'm'
-            %'m'
-            %'m'
-            %'m'
+            'm'
+            'm'
+            'm'
         }, ...
         'VariableNames', {'Variable Name','Description','Value','Units'} ...
     );
@@ -150,9 +158,9 @@ function results = getResults(BW, H)
     % get shaft dimensions
     rawDiameter = ShaftAnalysis.getShaftDiameter( ...
         Main.n_shaft, ...
-        Main.Su_St, ...
-        Main.Sy_St, ...
-        Main.getSsy(Main.Sy_St), ...
+        Main.Su_s, ...
+        Main.Sy_s, ...
+        Main.getSsy(Main.Sy_s), ...
         F_kx, ...
         F_ky, ...
         M_k ...
@@ -167,7 +175,7 @@ function results = getResults(BW, H)
     d_s = adjDiameter.d_s;
 
     % check torsional deflection
-    while ~ShaftAnalysis.getCheckTorsion(M_k, Main.getG(Main.E_St, Main.nu_St), ShaftAnalysis.L_s, D_s, adjDiameter.l_s-ShaftAnalysis.L_s, d_s)
+    while ~ShaftAnalysis.getCheckTorsion(M_k, Main.getG(Main.E_s, Main.nu_s), ShaftAnalysis.L_s, D_s, adjDiameter.l_s-ShaftAnalysis.L_s, d_s)
         D_s = D_s + 0.001;
         d_s = d_s + 0.001;
         JB = ShaftAnalysis.getJB(F_k, d_s);
@@ -180,10 +188,14 @@ function results = getResults(BW, H)
     w_k = ShaftAnalysis.getWk(D_s);
 
     % get support thickness
-    t_s = FrameAnalysis.getSupportThickness(Main.n_frame, F_k, FrameAnalysis.L_fr, Main.E_Al, JB.od);
+    t_s = FrameAnalysis.getSupportThickness(Main.n_frame, F_k, Main.E_fr, Main.getSsy(Main.Sy_fr), Main.Sy_fr, JB.od);
 
     % get leg cross-section dimensions
-    %legDimensions = FrameAnalysis.getLegDimensions(F_k, FrameAnalysis.L_fr, Main.E_Al);
+    legDimensions = FrameAnalysis.getLegDimensions(Main.n_frame, F_k, Main.E_fr, Main.Sy_fr, Main.getSsy(Main.Sy_fr), JB.od);
+
+    % get lip thickness
+    F_lp = FrameAnalysis.getFlp(M_k, F_k);
+    t_lp = FrameAnalysis.getLipThicknessComp(F_lp, FrameAnalysis.getSigma(Main.Sy_fr, Main.n_frame), FrameAnalysis.w_ball);
 
     results.D_s = D_s;
     results.d_s = adjDiameter.d_s;
@@ -197,9 +209,9 @@ function results = getResults(BW, H)
     results.d_isu = JB.od;
     results.t_su = t_s;
     results.L_fr = FrameAnalysis.L_fr;
-    %results.a = legDimensions.a;
-    %results.b = legDimensions.b;
-    %results.t_lp =
+    results.a = legDimensions.a;
+    results.b = legDimensions.b;
+    results.t_lp = t_lp;
 
     displayTable = Main.displayResults(results);    % display results to GUI
     results = displayTable;
