@@ -97,12 +97,6 @@ end
 
 % -------- JRF - INVERSE DYNAMICS --------
 
-function r = getR(x1, y1, x2, y2)
-    rx = abs(x1-x2);
-    ry = abs(y1-y2);
-    r = sqrt(rx^2 + ry^2);
-end
-
 % Forces at the ankle
 function F_a = getFAnkle(m_f, F_gx, F_gy, a_fx, a_fy)
     F_a.x = m_f*a_fx - F_gx;
@@ -123,17 +117,24 @@ function M_k = getMKnee(I_l, alpha_l, leg_x, leg_y, knee_x, knee_y, ankle_x, ank
     M_k = I_l*alpha_l + M_a + (leg_x-knee_x)*F_ky - (leg_y-knee_y)*F_kx - (leg_x-ankle_x)*F_ay + (leg_y-ankle_y)*F_ax;
 end
 
-% Force along (y') and perpendicular (x') to the axis of the prosthesis
-% **MAY NOT NEED THIS*** PLEASE DON"T NEED THIS 
-% ***DOUBLE CHECK ANGLE SIGN CONVENTIONS***
-function JRF_prime = getJRFprime(JRF_x, JRF_y, theta_l)
-    theta_prime = deg2rad(theta_l) - pi()/2;
-    JRF_prime.x_prime = JRF_y*sin(theta_prime) + JRF_x*cos(-theta_prime);
-    JRF_prime.y_prime = JRF_y*cos(theta_prime) + JRF_x*sin(-theta_prime);
-end
-
 % Get the maximum JRF during gait
 function maxJRF = getMaxJRF(BW, H)
+
+    % create log file
+    log = fopen('JRFLogFile.txt', 'w');
+    if log == -1
+        error('Could not create log file');
+    end
+    fprintf(log, '/***************************************/\n');
+    fprintf(log, '/                JRF LOG                /\n');
+    fprintf(log, '/***************************************/\n\n');
+
+    % print patient data
+    fprintf(log, 'Patient body weight: %.2f kg\n', BW);
+    fprintf(log, 'Patient height: %.2f m\n\n', H);
+
+    fprintf(log, 'Frame\t\tFa_x\t\tFa_y\t\tMa\t\tFk_x\t\tFk_y\t\tMk\t\tF_k total\n');
+
     GRFTable = JointReactionForce.getGRFData();
     GRFx = GRFTable.(matlab.lang.makeValidName('GRF_x, normalized (N/kg)'));
     GRFy = GRFTable.(matlab.lang.makeValidName('GRF_y, normalized (N/kg)'));
@@ -189,8 +190,8 @@ function maxJRF = getMaxJRF(BW, H)
             0, ...
             F_a.x, ...
             F_a.y, ...
-            GRFx(i), ...
-            GRFy(i) ...
+            GRFx(i)*BW, ...
+            GRFy(i)*BW ...
             );
         F_k = JointReactionForce.getFKnee( ...
             JointReactionForce.getMl(BW), ...
@@ -215,6 +216,8 @@ function maxJRF = getMaxJRF(BW, H)
             M_a ...
             );
         F_k_total = sqrt(F_k.x^2 + F_k.y^2);
+
+        fprintf(log, '%d\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f\n', i, F_a.x, F_a.y, M_a, F_k.x, F_k.y, M_k, F_k_total);
 
         % check max
         if F_k_total > F_k_max_total

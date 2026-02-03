@@ -10,6 +10,7 @@ su : supports
 fr: frame
 lp : lip
 b : ball
+py : pyramid adpater
 
 %}
 
@@ -43,6 +44,12 @@ properties (Constant)
     E_fr = 190*1000000000; % [Pa] Young's Modulus
     nu_fr = 0.27;   % Poisson's ratio
     %}
+
+    % PYRAMID ADAPTER MATERIAL
+
+    % Ti-6Al-4V
+    Sy_py = 880; % [MPa] yield strength 
+
 end
     
 methods (Static)
@@ -76,6 +83,11 @@ function displayTable = displayResults(results)
             'a'
             'b'
             't_lp'
+            'd_valve'
+            'Q'
+            'Cv'
+            'n_upper_py'
+            'n_lower_py'
         }, ...
         {
             'Large diamer of the shaft'
@@ -90,6 +102,11 @@ function displayTable = displayResults(results)
             'Frame leg cross section, long dimension (width)'
             'Frame leg cross section, short dimension (thickness)'
             'Thickness of the lip'
+            'Optimal valve diameter'
+            'Flow rate'
+            'Cv value for valve'
+            'Safety factor for upper pyramid adapter'
+            'Saftey factor for lower pyramid adapter'
         }, ...
         {
             results.D_s
@@ -104,20 +121,30 @@ function displayTable = displayResults(results)
             results.a 
             results.b 
             results.t_lp
+            results.d_valve
+            results.Q
+            results.Cv
+            results.n_upper_py
+            results.n_lower_py
         }, ...
         {
-            'm'
-            'm'
-            'm'
-            'm'
-            'm (diameters and length)'
-            'm'
-            'm'
-            'm'
-            'm'
-            'm'
-            'm'
-            'm'
+            'mm'
+            'mm'
+            'mm'
+            'mm'
+            'mm (diameters and length)'
+            'mm'
+            'mm'
+            'mm'
+            'mm'
+            'mm'
+            'mm'
+            'mm'
+            'mm'
+            'L/min'
+            'N/A'
+            'N/A'
+            'N/A'
         }, ...
         'VariableNames', {'Variable Name','Description','Value','Units'} ...
     );
@@ -155,8 +182,11 @@ function results = getResults(BW, H)
     fprintf(log, 'JRF_y = %.2f N\n', F_ky);
     fprintf(log, 'JRM = %.2f Nm\n\n', M_k);
 
+    fprintf(log, '-------- SHAFT ANALYSIS --------:\n\n');
+
     % get shaft dimensions
     rawDiameter = ShaftAnalysis.getShaftDiameter( ...
+        log, ...
         Main.n_shaft, ...
         Main.Su_s, ...
         Main.Sy_s, ...
@@ -167,15 +197,22 @@ function results = getResults(BW, H)
         );
 
     % get journal bearing specs
+    fprintf(log, 'Journal bearing for inner diameter of %.2fmm:\n', rawDiameter.d*1000);
     JB = ShaftAnalysis.getJB(F_k, rawDiameter.d);
+    fprintf(log, 'ID: %.2fmm, OD: %.2fmm, Length: %.2fmm, Part no. %s\n\n', JB.id*1000, JB.od*1000, JB.l*1000, JB.part{1});
 
     % get adjusted shaft dimensions
     adjDiameter = ShaftAnalysis.getFinalShaftDimensions(JB);
+    fprintf(log, 'Adjusted shaft dimensions after journal bearing selection:\n');
     D_s = rawDiameter.D;
     d_s = adjDiameter.d_s;
+    fprintf(log, 'D_s: %.2f mm\n', D_s*1000);
+    fprintf(log, 'd_s: %.2f mm\n', d_s*1000);
+    fprintf(log, 'L_s: %.2f mm\n', ShaftAnalysis.L_s*1000);
+    fprintf(log, 'l_s: %.2f mm\n\n', adjDiameter.l_s*1000);
 
     % check torsional deflection
-    while ~ShaftAnalysis.getCheckTorsion(M_k, Main.getG(Main.E_s, Main.nu_s), ShaftAnalysis.L_s, D_s, adjDiameter.l_s-ShaftAnalysis.L_s, d_s)
+    while ~ShaftAnalysis.getCheckTorsion(log, M_k, Main.getG(Main.E_s, Main.nu_s), ShaftAnalysis.L_s, D_s, adjDiameter.l_s-ShaftAnalysis.L_s, d_s)
         D_s = D_s + 0.001;
         d_s = d_s + 0.001;
         JB = ShaftAnalysis.getJB(F_k, d_s);
@@ -183,35 +220,59 @@ function results = getResults(BW, H)
     end
 
     D_s = ceil(rawDiameter.D*1000)/1000;    % round diameter up to the nearest mm
+    fprintf(log, '\nFinal adjusted shaft dimensions:\n');
+    fprintf(log, 'D_s: %.2f mm\n', D_s*1000);
+    fprintf(log, 'd_s: %.2f mm\n', d_s*1000);
+    fprintf(log, 'L_s: %.2f mm\n', ShaftAnalysis.L_s*1000);
+    fprintf(log, 'l_s: %.2f mm\n\n', adjDiameter.l_s*1000);
 
     % get key dimension
     w_k = ShaftAnalysis.getWk(D_s);
+    fprintf(log, 'Width of key: %.2f mm\n\n', w_k*1000);
+
+    fprintf(log, '-------- FRAME ANALYSIS --------:\n\n');
 
     % get support thickness
-    t_s = FrameAnalysis.getSupportThickness(Main.n_frame, F_k, Main.E_fr, Main.getSsy(Main.Sy_fr), Main.Sy_fr, JB.od);
+    t_s = FrameAnalysis.getSupportThickness(log, Main.n_frame, F_k, Main.E_fr, Main.getSsy(Main.Sy_fr), Main.Sy_fr, JB.od);
 
     % get leg cross-section dimensions
-    legDimensions = FrameAnalysis.getLegDimensions(Main.n_frame, F_k, Main.E_fr, Main.Sy_fr, Main.getSsy(Main.Sy_fr), JB.od);
+    legDimensions = FrameAnalysis.getLegDimensions(log, Main.n_frame, F_k, Main.E_fr, Main.Sy_fr, Main.getSsy(Main.Sy_fr), JB.od);
 
     % get lip thickness
     F_lp = FrameAnalysis.getFlp(M_k, F_k);
     t_lp = FrameAnalysis.getLipThicknessComp(F_lp, FrameAnalysis.getSigma(Main.Sy_fr, Main.n_frame), FrameAnalysis.w_ball);
+    fprintf(log, '\nLip Thickness:\n');
+    fprintf(log, 'F_lp: %.2f N\n', F_lp);
+    fprintf(log, 't_lp: %.2f mm\n', t_lp*1000);
 
-    results.D_s = D_s;
-    results.d_s = adjDiameter.d_s;
-    results.L_s = ShaftAnalysis.L_s;
-    results.l_s = adjDiameter.l_s;
-    results.JBid = JB.id;
-    results. JBod = JB.od;
-    results.JBl = JB.l;
+    % get needle valve calculations and plot
+    valve = HydraulicNeedleValve.getValveSize();
+    HydraulicNeedleValve.plot(valve);
+
+    % get pyramid adapter safety factors
+    FoS_yield_u = PyramidAdapter.getFoS_yield_u(F_kx, F_ky, Main.Sy_py);
+    FoS_yield_b = PyramidAdapter.getFoS_yield_b(F_kx, F_ky, Main.Sy_py);
+
+    results.D_s = D_s*1000;
+    results.d_s = adjDiameter.d_s*1000;
+    results.L_s = ShaftAnalysis.L_s*1000;
+    results.l_s = adjDiameter.l_s*1000;
+    results.JBid = JB.id*1000;
+    results. JBod = JB.od*1000;
+    results.JBl = JB.l*1000;
     results.JBpart = JB.part{1};
-    results.w_k = w_k;
-    results.d_isu = JB.od;
-    results.t_su = t_s;
-    results.L_fr = FrameAnalysis.L_fr;
-    results.a = legDimensions.a;
-    results.b = legDimensions.b;
-    results.t_lp = t_lp;
+    results.w_k = w_k*1000;
+    results.d_isu = JB.od*1000;
+    results.t_su = t_s*1000;
+    results.L_fr = FrameAnalysis.L_fr*1000;
+    results.a = legDimensions.a*1000;
+    results.b = legDimensions.b*1000;
+    results.t_lp = t_lp*1000;
+    results.d_valve = valve.d_best_mm;
+    results.Q = valve.Q_Lmin;
+    results.Cv = valve.Cv;
+    results.n_upper_py = FoS_yield_u;
+    results.n_lower_py = FoS_yield_b;
 
     displayTable = Main.displayResults(results);    % display results to GUI
     results = displayTable;

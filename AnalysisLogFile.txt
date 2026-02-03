@@ -2,12 +2,73 @@
 /          WORKING ANALYSIS LOG         /
 /***************************************/
 
-Patient body weight: 70.00 kg
-Patient height: 1.70 m
+Patient body weight: 50.00 kg
+Patient height: 1.30 m
 
 Maximum Joint Reaction Force and Moment:
-JRF = 715.86 N
-JRF_x = -78.10 N
-JRF_y = -711.59 N
-JRM = 78.45 Nm
+JRF = 511.33 N
+JRF_x = -55.78 N
+JRF_y = -508.28 N
+JRM = 33.00 Nm
 
+-------- SHAFT ANALYSIS --------:
+
+Limiting Shaft Diameters:
+D_s (fatigue loading): 19.44 mm
+D_s (bending stress): 9.44 mm
+d_s (fatigue loading): 20.83 mm
+d_s (shear loading): 18.21 mm
+
+Journal bearing for inner diameter of 20.83mm:
+ID: 22.00mm, OD: 27.00mm, Length: 18.00mm, Part no. 6659K45
+
+Adjusted shaft dimensions after journal bearing selection:
+D_s: 19.44 mm
+d_s: 22.00 mm
+L_s: 80.00 mm
+l_s: 128.00 mm
+
+Torsional deflection for D_s=19.44mm L_s=80.00mm d_s=22.00mm l_s=48.00mm: theta = 0.19 degrees
+
+Final adjusted shaft dimensions:
+D_s: 20.00 mm
+d_s: 22.00 mm
+L_s: 80.00 mm
+l_s: 128.00 mm
+
+Width of key: 5.00 mm
+
+-------- FRAME ANALYSIS --------:
+
+Limiting Support Thicknesses:
+Buckling
+Pcr = 511.33 N
+H_su = 3.25 mm
+t_su (buckling): 0.10 mm
+Shear
+tau_allowed: 80040000.00 Pa
+t_su (shear): 0.18 mm
+Bending
+sigma_allowed: 138000000.00 Pa
+t_su (bending XY): 0.10 mm
+t_su (bending YZ): 0.82 mm
+
+Limiting Leg Dimensions:
+Buckling
+Pcr: 255.66 N
+I_allowed: 1.35 mm^4
+a: 2.39 mm
+b: 0.72 mm
+Shear
+tau_allowed: 80040000.00 Pa
+a: 2.17 mm
+b: 0.65 mm
+Bending
+sigma_allowed: 138000000.00 Pa
+I_allowed: 2711.72 mm^4
+a: 1.98 mm
+b: 0.59 mm
+
+Lip Thickness:
+F_lp: 1080.70 N
+t_lp: 0.10 mm

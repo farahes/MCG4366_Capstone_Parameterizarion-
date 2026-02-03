@@ -42,10 +42,12 @@ function H_su = getHsu(d_isu)
     H_su = ((FrameAnalysis.r_ball-d_isu)/2)*cos(FrameAnalysis.phi1/2);
 end
 
-function t_su = gettsuBuckling(n, JRF, E, d_isu)
+function t_su = gettsuBuckling(log, n, JRF, E, d_isu)
     Pcr = FrameAnalysis.getPcrsu(JRF, n);
+    fprintf(log, 'Pcr = %.2f N\n', Pcr);
     H_su = FrameAnalysis.getHsu(d_isu);
-    t_su = (3*Pcr*H_su/(pi()^2*E*d_isu))^(1/3);
+    fprintf(log, 'H_su = %.2f mm\n', H_su*1000);
+    t_su = (3*Pcr*H_su^2/(pi()^2*E*d_isu))^(1/3);
 end
 
 % SHEAR (x-y plane)
@@ -63,28 +65,37 @@ function M = MfunctionBending(JRF, h_su)
 end
 
 function t_su = gettsuBendingXY(JRF, H_su, d_isu, sigma)
-    M_max = JRF*H_su/2;
-    t_su = 6*M_max/(sigma*d_isu^2);
+    t_su = 6*JRF*H_su/(sigma*d_isu^2);
 end
 
 function t_su = gettsuBendingYZ(JRF, H_su, d_isu, sigma)
-    M_max = JRF*H_su;
-    t_su = sqrt(6*M_max/(sigma*d_isu));
+    JRF_z = JRF*0.25;
+    t_su = sqrt(6*JRF_z*H_su/(sigma*d_isu));
 end
 
 % REQUIRED SUPPORT THICKNESS
 
-function t_su = getSupportThickness(n, JRF, E, Ssy, Sy, d_isu)
+function t_su = getSupportThickness(log, n, JRF, E, Ssy, Sy, d_isu)
 
+    fprintf(log, 'Limiting Support Thicknesses:\n');
     % Buckling
-    t1 = FrameAnalysis.gettsuBuckling(n, JRF, E, d_isu);
+    fprintf(log, 'Buckling\n');
+    t1 = FrameAnalysis.gettsuBuckling(log, n, JRF, E, d_isu);
+    fprintf(log, 't_su (buckling): %.2f mm\n', t1*1000);
     % Shear
+    fprintf(log, 'Shear\n');
     tau = FrameAnalysis.getTau(Ssy, n);
+    fprintf(log, 'tau_allowed: %.2f Pa\n', tau);
     t2 = FrameAnalysis.gettsuShearXY(JRF, d_isu, tau);
+    fprintf(log, 't_su (shear): %.2f mm\n', t2*1000);
     % Bending
+    fprintf(log, 'Bending\n');
     sigma = FrameAnalysis.getSigma(Sy, n);
+    fprintf(log, 'sigma_allowed: %.2f Pa\n', sigma);
     t3 = FrameAnalysis.gettsuBendingXY(JRF, FrameAnalysis.getHsu(d_isu), d_isu, sigma);
     t4 = FrameAnalysis.gettsuBendingYZ(JRF, FrameAnalysis.getHsu(d_isu), d_isu, sigma);
+    fprintf(log, 't_su (bending XY): %.2f mm\n', t3*1000);
+    fprintf(log, 't_su (bending YZ): %.2f mm\n\n', t4*1000);
 
     t_su = max([t1, t2, t3, t4]);
 end
@@ -171,23 +182,39 @@ function legDim = getLegDimsBending(I_allowed, W_su)
 end
 
 % REQUIRED LEG DIMENSIONS
-function legDimensions = getLegDimensions(n, JRF, E, Sy, Ssy, d_isu)
+function legDimensions = getLegDimensions(log, n, JRF, E, Sy, Ssy, d_isu)
+
+    fprintf(log, 'Limiting Leg Dimensions:\n');
     % Calculate geometry
     H_su = FrameAnalysis.getHsu(d_isu);
     W_su = FrameAnalysis.wsufunction(d_isu, H_su);
 
     % Buckling
+    fprintf(log, 'Buckling\n');
     Pcr1 = FrameAnalysis.getPcrfr(JRF, n);
     I_allowed1 = FrameAnalysis.getIAllowed(Pcr1, E);
     Dim1 = FrameAnalysis.getLegDimsBuckling(I_allowed1);
+    fprintf(log, 'Pcr: %.2f N\n', Pcr1);
+    fprintf(log, 'I_allowed: %.2f mm^4\n', I_allowed1*1000000000000);
+    fprintf(log, 'a: %.2f mm\n', Dim1.a*1000);
+    fprintf(log, 'b: %.2f mm\n', Dim1.b*1000);
     % Shear
+    fprintf(log, 'Shear\n');
     tau_allowed2 = FrameAnalysis.getTau(Ssy, n);
     Dim2 = FrameAnalysis.getLegDimsShear(JRF, tau_allowed2);
+    fprintf(log, 'tau_allowed: %.2f Pa\n', tau_allowed2);
+    fprintf(log, 'a: %.2f mm\n', Dim2.a*1000);
+    fprintf(log, 'b: %.2f mm\n', Dim2.b*1000);
     % Bending
+    fprintf(log, 'Bending\n');
     M_max3 = FrameAnalysis.getMmaxBending(JRF, W_su);
     sigma_allowed3 = FrameAnalysis.getSigma(Sy, n);
     I_allowed3 = FrameAnalysis.getIAllowedBending(M_max3, W_su, sigma_allowed3);
     Dim3 = FrameAnalysis.getLegDimsBending(I_allowed3, W_su);
+    fprintf(log, 'sigma_allowed: %.2f Pa\n', sigma_allowed3);
+    fprintf(log, 'I_allowed: %.2f mm^4\n', I_allowed3*1000000000000);
+    fprintf(log, 'a: %.2f mm\n', Dim3.a*1000);
+    fprintf(log, 'b: %.2f mm\n', Dim3.b*1000);
 
     legDimensions.a = max([Dim1.a, Dim2.a, Dim3.a]);
     legDimensions.b = max([Dim1.b, Dim2.b, Dim3.b]);

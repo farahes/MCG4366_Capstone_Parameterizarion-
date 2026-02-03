@@ -34,8 +34,8 @@ function V = getV(JRFx, JRFy)
 end
 
 % magnitude of the maximum bending moment on the shaft
-function M = getM(L, V)
-    M = (L/2)*V;  % [Nm]
+function M = getM(L_s, V)
+    M = (L_s/2)*V;  % [Nm]
 end
 
 % magnitude of the torque on the shaft
@@ -80,17 +80,20 @@ function d = getShaftDiameterShear(n, Ssy, V)
 end
 
 % TORSIONAL DEFLECTION OF SHAFT
-function bool = getCheckTorsion(T, G, L1, D1, L2, D2)
+function bool = getCheckTorsion(log, T, G, L1, D1, L2, D2)
     theta_allowed = deg2rad(1);
     theta = (32*T/(pi()*G))*((L1/D1^4) + (L2/D2^4));
     bool = theta < theta_allowed;
+    fprintf(log, 'Torsional deflection for D_s=%.2fmm L_s=%.2fmm d_s=%.2fmm l_s=%.2fmm: theta = %.2f degrees\n', D1*1000, L1*1000, D2*1000, L2*1000, rad2deg(theta));
 end
 
 % REQUIRED SHAFT DIAMETER
 
 % maximum of the required shaft diameters for each loading condition
-function shaftDiameter = getShaftDiameter(n, Su, Sy, Ssy, JRFx, JRFy, M_k)
+function shaftDiameter = getShaftDiameter(log, n, Su, Sy, Ssy, JRFx, JRFy, M_k)
 
+    fprintf(log, 'Limiting Shaft Diameters:\n');
+    
     % Determine limiting D_s
     % Fatigue
     D1 = ShaftAnalysis.getShaftDiameterFatigue( ...
@@ -100,8 +103,10 @@ function shaftDiameter = getShaftDiameter(n, Su, Sy, Ssy, JRFx, JRFy, M_k)
         ShaftAnalysis.getSn(Su), ...
         Su ...
         );
+    fprintf(log, 'D_s (fatigue loading): %.2f mm\n', D1*1000);
     % Pure bending
     D2 = ShaftAnalysis.getShaftDiameterBending(n, Sy, ShaftAnalysis.getM(ShaftAnalysis.L_s, ShaftAnalysis.getV(JRFx, JRFy)));
+    fprintf(log, 'D_s (bending stress): %.2f mm\n', D2*1000);
 
     % Determine limiting d_s
     % Fatigue
@@ -112,6 +117,7 @@ function shaftDiameter = getShaftDiameter(n, Su, Sy, Ssy, JRFx, JRFy, M_k)
         ShaftAnalysis.getSn(Su), ...
         Su ...
         );
+    fprintf(log, 'd_s (fatigue loading): %.2f mm\n', d1*1000);
     % Static shear
     d2 = ShaftAnalysis.getShaftDiameterShear( ...
         n, ...
@@ -121,9 +127,7 @@ function shaftDiameter = getShaftDiameter(n, Su, Sy, Ssy, JRFx, JRFy, M_k)
 
     shaftDiameter.D = max([D1, D2]);
     shaftDiameter.d = max([d1, d2]);
-
-    % check static deflection and get critical speed?
-    % critical speed > 2xoperating speed
+    fprintf(log, 'd_s (shear loading): %.2f mm\n\n', d2*1000);
 end
 
 % --------JOURNAL BEARING--------

@@ -1,8 +1,10 @@
-Still disconnected from Main:
-- Frame Analysis (partially complete)
-- Pyramid Adapter Analysis (in Excel)
-- Button Analysis (in Excel)
-- Hydraulic Analysis (in separate MATLAB file)
+TO RUN SIMULATION:
+- click on WorkingAnalysisApp.mlapp
+- enter user BW and H
+- click 'Generate'
 
-To add:
-- intermediate steps to the log file
+TO SEE INTERMEDIATE RESULTS:
+- open AnalysisLofFile.txt
+
+TO SEE JRF AND MOMENT CALCULATIONS:
+- open JRFLogFile.txt
