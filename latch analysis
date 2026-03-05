@@ -1,0 +1,157 @@
+%% =========================================================
+% LATCH LOCK DETENT MECHANISM — PARAMETRIZATION
+% MCG4366 Group 12 | Prosthetic Knee Latch
+%
+% M_knee is left as a variable — fill in once known from
+% the knee moment MATLAB model.
+%
+% Design logic:
+% 1. Sweep theta (hump angle) and compute feasible k window
+% 2. k_min comes from back-drive requirement
+% 3. k_max comes from user unlock force limit
+% 4. Spring geometry is back-calculated from chosen k and delta
+% 5. Pin shear and Hertzian contact checked at each theta
+%% =========================================================
+clear; clc; close all;
+%% =========================================================
+% SECTION 1: INPUTS
+%% =========================================================
+% --- !! FILL IN WHEN KNOWN !! ---
+M_knee = 50000; % [N·mm] Knee moment — REPLACE WITH MODEL VALUE
+% --- Ball joint ---
+R_ball = 10; % [mm] Ball joint radius -(need to be changed)
+% --- Hump ---
+h_hump = 2; % [mm] Hump height
+delta = h_hump; % [mm] Spring compression to clear hump (~= h)
+% --- Pin ---
+d_pin = 20; % [mm] Pin diameter
+R_pin_tip = 10; % [mm] Pin tip radius (hemispherical = d/2)
+% --- User actuation ---
+L_handle = 30; % [mm] Handle moment arm (thickness of casing+frame)
+F_user_max = 50; % [N] Max comfortable unlock force for user
+% --- Material: SAE 304 Stainless Steel ---
+Sy = 207; % [MPa] Yield strength
+E = 193000; % [MPa] Young's modulus
+nu = 0.29; % [-] Poisson's ratio
+N_safety = 2.0; % [-] Design safety factor
+%% =========================================================
+% SECTION 2: DERIVED QUANTITIES
+%% =========================================================
+F_lateral = M_knee / R_ball; % [N] Tangential force at ball
+A_pin = pi * d_pin^2 / 4; % [mm²] Pin cross-section
+Ssy = 0.577 * Sy; % [MPa] Shear yield strength
+fprintf('============================================\n');
+fprintf(' LATCH LOCK PARAMETRIZATION — GROUP 12\n');
+fprintf('============================================\n');
+fprintf('M_knee = %.0f N·mm ', M_knee);
+if M_knee == 50000
+fprintf(' << PLACEHOLDER — update when known >>\n');
+else
+fprintf(' << USER DEFINED >>\n');
+end
+fprintf('F_lateral = %.1f N (= M_knee / R_ball)\n\n', F_lateral);
+%% =========================================================
+% SECTION 3: THETA SWEEP — k BOUNDS AT EACH ANGLE
+%
+% k_min: spring must be stiff enough that delta=2mm generates
+% enough force to resist back-drive
+% F_spring = k*delta >= F_lateral/tan(theta)
+% → k_min = F_lateral / (tan(theta) * delta)
+%
+% k_max: spring cannot be so stiff that user cannot unlock it
+% F_user = k*delta*(R_ball/L_handle) <= F_user_max
+% → k_max = F_user_max * L_handle / (delta * R_ball)
+% Note: k_max is independent of theta
+%% =========================================================
+theta_deg = linspace(10, 80, 500);
+theta_rad = deg2rad(theta_deg);
+% k bounds
+k_min = F_lateral ./ (tan(theta_rad) .* delta); % [N/mm] varies with theta
+k_max = (F_user_max * L_handle) / (delta * R_ball); % [N/mm] constant
+% Feasibility: k_min <= k_max
+feasible = k_min <= k_max;
+fprintf('=== STIFFNESS BOUNDS ===\n');
+fprintf('k_max (user limit): %.2f N/mm (constant across all theta)\n', k_max);
+if any(feasible)
+theta_feas = theta_deg(feasible);
+k_min_feas = k_min(feasible);
+theta_lo = min(theta_feas);
+theta_hi = max(theta_feas);
+theta_rec = mean([theta_lo theta_hi]);
+k_at_rec = F_lateral / (tand(theta_rec) * delta);
+k_chosen = mean([k_at_rec, k_max]); % midpoint of feasible k range
+fprintf('Feasible theta: %.1f° to %.1f°\n', theta_lo, theta_hi);
+fprintf('Recommended theta: %.1f° (midpoint)\n', theta_rec);
+fprintf('k_min at rec theta: %.2f N/mm\n', k_at_rec);
+fprintf('Chosen k (midpoint): %.2f N/mm\n\n', k_chosen);
+else
+fprintf('\nNO FEASIBLE ANGLE FOUND.\n');
+fprintf('Try: increasing F_user_max, increasing L_handle, or reducing M_knee.\n\n');
+k_chosen = k_max; % fallback for plots
+end
+%% =========================================================
+% SECTION 4: SPRING GEOMETRY BACK-CALCULATION
+% Given k and delta, find wire diameter and coil geometry
+% Wahl: k = G * d_w^4 / (8 * D^3 * N_a)
+%
+% We fix C = D/d_w (spring index, typically 6-12)
+% and N_a (active coils), then solve for d_w and D
+%% =========================================================
+% Spring material: SS wire, G = 69,000 MPa
+G_spring = 69000; % [MPa]
+C_index = 8; % [-] Spring index (choose 6–12, 8 is typical)
+N_a = 6; % [-] Active coils (choose, then verify)
+% From k = G*d_w^4 / (8*(C*d_w)^3*N_a) = G*d_w / (8*C^3*N_a)
+% → d_w = 8 * k_chosen * C^3 * N_a / G_spring
+d_w = (8 * k_chosen * C_index^3 * N_a / G_spring); % [mm]
+D_coil = C_index * d_w; % [mm] mean coil dia
+% Verify k
+k_verify = G_spring * d_w^4 / (8 * D_coil^3 * N_a); % [N/mm]
+% Spring force at delta compression
+F_spring = k_chosen * delta; % [N]
+% Wahl correction factor
+K_wahl = (4*C_index - 1)/(4*C_index - 4) + 0.615/C_index;
+% Shear stress in spring wire at F_spring
+tau_spring = K_wahl * 8 * F_spring * D_coil / (pi * d_w^3); % [MPa]
+n_spring = Ssy / tau_spring;
+fprintf('=== SPRING GEOMETRY (back-calculated) ===\n');
+fprintf('Spring index C: %d\n', C_index);
+fprintf('Active coils N_a: %d\n', N_a);
+fprintf('Wire diameter d_w: %.2f mm\n', d_w);
+fprintf('Mean coil dia D: %.2f mm\n', D_coil);
+fprintf('Spring rate k: %.2f N/mm (verify: %.2f N/mm)\n', k_chosen, k_verify);
+fprintf('Spring force at delta=%.0fmm: F_spring = %.2f N\n', delta, F_spring);
+fprintf('Wahl factor K: %.3f\n', K_wahl);
+fprintf('Spring wire stress: %.2f MPa (n = %.2f)\n\n', tau_spring, n_spring);
+if n_spring < N_safety
+warning('Spring wire stress safety factor below %.1f — adjust geometry.', N_safety);
+end
+%% =========================================================
+% SECTION 5: PIN SHEAR CHECK
+%% =========================================================
+tau_pin = F_lateral / A_pin;
+n_shear = Ssy / tau_pin;
+fprintf('=== PIN SHEAR ===\n');
+fprintf('Shear stress: tau = %.2f MPa\n', tau_pin);
+fprintf('Safety factor: n = %.2f (need >= %.1f)\n\n', n_shear, N_safety);
+if n_shear < N_safety
+warning('Pin shear safety factor too low — increase pin diameter d_pin.');
+end
+%% =========================================================
+% SECTION 6: HERTZIAN CONTACT STRESS
+% Hemisphere pin tip on spherical ball — same material
+%% =========================================================
+E_star = E / (2*(1 - nu^2)); % [MPa] same material
+R_eff = (R_pin_tip * R_ball) / (R_pin_tip + R_ball); % [mm]
+% --- CORRECT HERTZ CONTACT RADIUS ---
+a_contact = ((3 * F_spring * R_eff) / (4 * E_star))^(1/3); % [mm]
+p_max = (3 * F_spring) / (2 * pi * a_contact^2); % [MPa]
+n_hertz = Sy / p_max;
+fprintf('=== HERTZIAN CONTACT STRESS ===\n');
+fprintf('Effective radius: R_eff = %.2f mm\n', R_eff);
+fprintf('Contact radius: a = %.4f mm\n', a_contact);
+fprintf('Peak pressure: p_max = %.2f MPa\n', p_max);
+fprintf('Safety factor: n = %.2f (need >= %.1f)\n\n', n_hertz, N_safety);
+if n_hertz < N_safety
+warning('Hertzian contact stress too high — increase pin tip radius R_pin_tip.');
+end
