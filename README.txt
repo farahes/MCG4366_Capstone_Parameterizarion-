@@ -4,7 +4,7 @@ TO RUN SIMULATION:
 - click 'Generate'
 
 TO SEE INTERMEDIATE RESULTS:
-- open AnalysisLofFile.txt
+- open AnalysisLogFile.txt
 
 TO SEE JRF AND MOMENT CALCULATIONS:
 - open JRFLogFile.txt
