@@ -1,0 +1,63 @@
+%% Knee Pivot Safety Analysis - Single Shear
+% Includes:
+% - Static shear safety factor
+% - Fatigue safety factor (Modified Goodman)
+% Material: AISI 304 Stainless Steel
+clear; clc;
+%% ---------------- INPUTS ----------------
+% Geometry
+d = 12.5e-3; % Pin diameter [m]
+% Loading
+F_max = 3 * 55 * 9.81; % Maximum load [N]
+F_min = 0; % Minimum load [N]
+% Material properties (AISI 304 SS)
+Su = 505e6; % Ultimate tensile strength [Pa]
+Sy = 215e6; % Yield strength [Pa]
+% Fatigue factors (Juvinall)
+CS = 0.85; % Surface factor
+CG = 0.9; % Gradient factor
+CR = 0.81; % Reliability factor
+%% -------- ENDURANCE LIMIT (FATIGUE) ------
+Se_prime = 0.5 * Su;
+Se = Se_prime * CS * CG * CR;
+%% ------------- STRESS ANALYSIS -----------
+A = pi * d^2 / 4;
+% Single shear stresses
+tau_max = F_max / A;
+tau_min = F_min / A;
+tau_a = (tau_max - tau_min) / 2;
+tau_m = (tau_max + tau_min) / 2;
+%% -------- VON MISES EQUIVALENT STRESS -----
+sigma_a_eq = sqrt(3) * tau_a;
+sigma_m_eq = sqrt(3) * tau_m;
+%% -------- FATIGUE SAFETY FACTOR -----------
+Goodman_ratio = (sigma_a_eq / Se) + (sigma_m_eq / Su);
+SF_fatigue = 1 / Goodman_ratio;
+%% -------- STATIC SHEAR SAFETY FACTOR -----
+Ssy = 0.577 * Sy; % Shear yield strength
+SF_shear = Ssy / tau_max;
+%% ---------------- OUTPUTS ----------------
+fprintf('--------------------------------------------\n');
+fprintf(' Knee Pivot Safety Analysis (Single Shear)\n');
+fprintf('--------------------------------------------\n');
+fprintf('Pin diameter: %.2f mm\n', d*1e3);
+fprintf('Max load: %.1f N\n', F_max);
+fprintf('\n--- Static Check ---\n');
+fprintf('Max shear stress: %.2f MPa\n', tau_max/1e6);
+fprintf('Shear yield strength: %.2f MPa\n', Ssy/1e6);
+fprintf('Static shear safety factor: %.2f\n', SF_shear);
+fprintf('\n--- Fatigue Check ---\n');
+fprintf('Equivalent alternating stress: %.2f MPa\n', sigma_a_eq/1e6);
+fprintf('Equivalent mean stress: %.2f MPa\n', sigma_m_eq/1e6);
+fprintf('Modified endurance limit: %.2f MPa\n', Se/1e6);
+fprintf('Fatigue safety factor (Goodman): %.2f\n', SF_fatigue);
+fprintf('\n--- Governing Condition ---\n');
+SF_min = min(SF_shear, SF_fatigue);
+fprintf('Minimum safety factor: %.2f\n', SF_min);
+if SF_min >= 1.5
+fprintf('Overall status: SAFE\n');
+elseif SF_min >= 1.0
+fprintf('Overall status: MARGINALLY SAFE\n');
+else
+fprintf('Overall status: NOT SAFE\n');
+en
