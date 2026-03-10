@@ -1,6 +1,6 @@
 % =========================================================
 % LATCH LOCK - ROTATING LATCH PARAMETRIZATION
-% MCG4366 Group 12 | Prosthetic Knee Latch
+% MCG4366 Group 12
 %
 % Design logic:
 % 1. Sweep theta (hump angle) and compute feasible k window
@@ -112,6 +112,7 @@ methods (Static)
         l_free = Lock.l_cavity + Lock.delta_pre;
     end
     
+    % operating length
     function l_op = getLop()
         l_op = Lock.l_cavity - Lock.delta();
     end
