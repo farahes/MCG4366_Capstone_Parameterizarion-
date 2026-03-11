@@ -123,26 +123,20 @@ end
 % The centroid and second moment of area are computed via the parallel-axis theorem,
 % then vpasolve finds the 'a' that achieves exactly I_allowed.
 function legDim = getLegDimsBuckling(I_allowed)
-    syms a real positive
-    b = FrameAnalysis.ratio*a;          % wall thickness as fraction of outer size
-    cy = (a^2 - b^2 + a*b)/(4*a-2*b);  % centroid y-position from the bottom face
-    I1 = (a*b^3)/12;                    % inertia of bottom flange about its own centroid
-    A1 = a*b;                           % area of bottom flange
-    d1 = cy - b/2;                      % distance from section centroid to flange centroid
-    I2 = (b*(a-b)^3)/12;               % inertia of web about its own centroid
-    A2 = b*(a-b);                       % area of web
-    d2 = b + (a-b)/2 - cy;             % distance from section centroid to web centroid
+    % Since b = ratio*a, every area term scales as a^2 and every second moment as a^4.
+    % Evaluating I at a=1 gives the constant I_unit, then a = (I_allowed/I_unit)^0.25 exactly.
+    r   = FrameAnalysis.ratio;
+    b1  = r;
+    cy1 = (1 - b1^2 + b1) / (4 - 2*b1);
+    I1u = b1^3 / 12;
+    A1u = b1;          d1u = cy1 - b1/2;
+    I2u = b1*(1-b1)^3 / 12;
+    A2u = b1*(1-b1);   d2u = b1 + (1-b1)/2 - cy1;
+    I_unit = I1u + I2u + A1u*d1u^2 + A2u*d2u^2;  % I(a=1)
 
-    I = I1 + I2 + A1*d1^2 + A2*d2^2;   % total I via parallel-axis theorem
-    eqn = I == I_allowed;
-    a_sol = vpasolve(eqn, a, I_allowed^(1/4));
-    a_sol = double(a_sol);
-    a_sol = a_sol(a_sol > 0 & imag(a_sol) == 0);
-    a_sol = min(a_sol);
-    b_sol = FrameAnalysis.ratio*a_sol;
-
+    a_sol = (I_allowed / I_unit)^0.25;
     legDim.a = a_sol;
-    legDim.b = b_sol;
+    legDim.b = r * a_sol;
 end
     
 % SHEAR
@@ -150,18 +144,11 @@ end
 % tau = 3*V / (8 * A_web)  where A_web = a^2 - (a-b)^2 (area difference outer vs inner).
 % Each of the 4 legs carries JRF/4; vpasolve finds 'a' satisfying tau = tau_allowed.
 function legDim = getLegDimsShear(JRF, tau_allowed)
-    syms a real positive
-    b = FrameAnalysis.ratio*a;
-    tau = 3*JRF/(8*(a^2-(a-b)^2));     % average shear stress across web
-    eqn = tau == tau_allowed;
-    a_sol = vpasolve(eqn, a, tau_allowed^(1/4));
-    a_sol = double(a_sol);
-    a_sol = a_sol(a_sol > 0 & imag(a_sol) == 0);
-    a_sol = min(a_sol);
-    b_sol = FrameAnalysis.ratio*a_sol;
-
+    % With b = ratio*a: a^2 - (a-b)^2 = a^2*ratio*(2-ratio), solve directly for a.
+    r     = FrameAnalysis.ratio;
+    a_sol = sqrt(3*JRF / (8 * tau_allowed * r * (2 - r)));
     legDim.a = a_sol;
-    legDim.b = b_sol;
+    legDim.b = r * a_sol;
 end
 
 % BENDING
@@ -179,25 +166,15 @@ end
 % each leg's flange and web, offset from the neutral axis by their respective distances.
 % vpasolve finds the 'a' such that the combined I equals I_allowed.
 function legDim = getLegDimsBending(I_allowed, W_su)
-    syms a real positive
-    b = FrameAnalysis.ratio*a;
-    I1 = (a*b^3)/12;                % inertia of flange about its own NA
-    A1 = a*b;                       % flange area
-    d1 = (W_su-b)/2;               % flange offset from system NA
-    I2 = (b*(a-b)^3)/12;           % inertia of web about its own NA
-    A2 = b*(a-b);                   % web area
-    d2 = W_su/2 - b - (a-b)/2;    % web offset from system NA
-
-    I = 4*(I1 + A1*d1^2) + 4*(I2 + A2*d2^2);   % summed over all 4 legs
-    eqn = I == I_allowed;
-    a_sol = vpasolve(eqn, a, I_allowed^(1/4));
-    a_sol = double(a_sol);
-    a_sol = a_sol(a_sol > 0 & imag(a_sol) == 0);
-    a_sol = min(a_sol);
-    b_sol = FrameAnalysis.ratio*a_sol;
-
+    % W_su introduces cross terms between the constant W_su and unknown a,
+    % so the pure a^4 scaling trick does not apply. fzero() (base MATLAB,
+    % no toolbox) finds the root of I(a) - I_allowed on [1e-5, 1] m.
+    r = FrameAnalysis.ratio;
+    Ifunc = @(a) 4*( (a*(r*a)^3)/12    + (a*(r*a))   *((W_su - r*a)/2)^2 ) + ...
+                 4*( ((r*a)*(a-r*a)^3)/12 + ((r*a)*(a-r*a))*(W_su/2 - r*a - (a-r*a)/2)^2 );
+    a_sol = fzero(@(a) Ifunc(a) - I_allowed, [1e-5, 1]);
     legDim.a = a_sol;
-    legDim.b = b_sol;
+    legDim.b = r * a_sol;
 end
 
 % REQUIRED LEG DIMENSIONS

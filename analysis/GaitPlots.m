@@ -132,7 +132,7 @@ function plotHydraulicPressure(pressureSeries)
     plot(pressureSeries.gait_pct, pressureSeries.T_damp_series, 'r-', 'LineWidth', 1.5);
     ylabel('Damping Torque (N·m)');
 
-    % phase shading on the yyaxis right frame
+    yyaxis left;  % switch back to left axis so shading uses left-axis ylim
     GaitPlots.addPhaseShading();
     hold off;
 
@@ -231,8 +231,10 @@ function addPhaseShading()
                'EdgeColor', 'none', 'FaceAlpha', 0.35, 'HandleVisibility', 'off');
     h2 = patch([60 100 100 60], [y(1) y(1) y(2) y(2)], [0.80 0.96 0.98], ...
                'EdgeColor', 'none', 'FaceAlpha', 0.35, 'HandleVisibility', 'off');
-    uistack(h1, 'bottom');
-    uistack(h2, 'bottom');
+    % ZData = -1 pushes patches behind all lines (Z=0 default).
+    % This works with yyaxis dual-axis plots where uistack fails.
+    h1.ZData = -ones(1, 4);
+    h2.ZData = -ones(1, 4);
 
     % Phase labels near the bottom of the axes
     y_label = y(1) + 0.04 * (y(2) - y(1));
