@@ -42,7 +42,7 @@ end
 % Derived from the radial gap between the ball outer radius and the shaft OD,
 % projected onto the bisector of the leg opening angle phi1.
 function H_su = getHsu(d_isu, r_b)
-    H_su = ((r_b-d_isu)/2)*cos(FrameAnalysis.phi1/2);
+    H_su = (r_b-(d_isu/2))*cos(FrameAnalysis.phi1/2);
 end
 
 % Minimum support plate thickness from Euler column buckling.
