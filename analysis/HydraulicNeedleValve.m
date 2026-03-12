@@ -57,6 +57,8 @@ function results = getValveSize()
 end
 
 % Plot needle valve flow rate vs diameter
+%{
+REMOVE PLOT, NO CHANGE
 function plot(results)
     d_mm = results.d * 1e3;
     Q_Lmin = results.Q * 60 * 1000;
@@ -71,6 +73,7 @@ function plot(results)
     title('Needle Valve Flow vs Diameter');
     grid on;
 end
+%}
 
 end
 end
