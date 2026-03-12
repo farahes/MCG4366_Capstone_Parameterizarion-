@@ -13,12 +13,12 @@ b : ball
 classdef FrameAnalysis
 
 properties (Constant)
-    r_ball = 0.04; % [m], radius of the ball
-    w_ball = 0.08;  % [m], width of the ball
+
     phi1 = 2*pi()/3;   % [rad], angle between the front legs and back legs
     phi2 = pi()/3; % [rad], angle between front leg and the lip
     L_fr = 0.12; % [m], length of the legs
     ratio = 0.3;    % ratio between a and b
+
 end
 
 methods (Static)
@@ -41,18 +41,18 @@ end
 % Projected height of the support plate along the inclined leg axis.
 % Derived from the radial gap between the ball outer radius and the shaft OD,
 % projected onto the bisector of the leg opening angle phi1.
-function H_su = getHsu(d_isu)
-    H_su = ((FrameAnalysis.r_ball-d_isu)/2)*cos(FrameAnalysis.phi1/2);
+function H_su = getHsu(d_isu, r_b)
+    H_su = ((r_b-d_isu)/2)*cos(FrameAnalysis.phi1/2);
 end
 
 % Minimum support plate thickness from Euler column buckling.
 % Fixed-free column:  Pcr = pi^2 * E * I / (4 * H_su^2)
 % With I = d_isu * t^3 / 12 (rectangular cross-section), solved for t:
 %   t = (3 * Pcr * H_su^2 / (pi^2 * E * d_isu))^(1/3)
-function t_su = gettsuBuckling(log, n, JRF, E, d_isu)
+function t_su = gettsuBuckling(log, n, JRF, E, d_isu, r_b)
     Pcr = FrameAnalysis.getPcrsu(JRF, n);
     fprintf(log, 'Pcr = %.2f N\n', Pcr);
-    H_su = FrameAnalysis.getHsu(d_isu);
+    H_su = FrameAnalysis.getHsu(d_isu, r_b);
     fprintf(log, 'H_su = %.2f mm\n', H_su*1000);
     t_su = (3*Pcr*H_su^2/(pi()^2*E*d_isu))^(1/3);
 end
@@ -82,12 +82,12 @@ end
 
 % REQUIRED SUPPORT THICKNESS
 
-function t_su = getSupportThickness(log, n, JRF, E, Ssy, Sy, d_isu)
+function t_su = getSupportThickness(log, n, JRF, E, Ssy, Sy, d_isu, r_b)
 
     fprintf(log, 'Limiting Support Thicknesses:\n');
     % Buckling
     fprintf(log, 'Buckling\n');
-    t1 = FrameAnalysis.gettsuBuckling(log, n, JRF, E, d_isu);
+    t1 = FrameAnalysis.gettsuBuckling(log, n, JRF, E, d_isu, r_b);
     fprintf(log, 't_su (buckling): %.2f mm\n', t1*1000);
     % Shear
     fprintf(log, 'Shear\n');
@@ -99,8 +99,8 @@ function t_su = getSupportThickness(log, n, JRF, E, Ssy, Sy, d_isu)
     fprintf(log, 'Bending\n');
     sigma = FrameAnalysis.getSigma(Sy, n);
     fprintf(log, 'sigma_allowed: %.2f Pa\n', sigma);
-    t3 = FrameAnalysis.gettsuBendingXY(JRF, FrameAnalysis.getHsu(d_isu), d_isu, sigma);
-    t4 = FrameAnalysis.gettsuBendingYZ(JRF, FrameAnalysis.getHsu(d_isu), d_isu, sigma);
+    t3 = FrameAnalysis.gettsuBendingXY(JRF, FrameAnalysis.getHsu(d_isu, r_b), d_isu, sigma);
+    t4 = FrameAnalysis.gettsuBendingYZ(JRF, FrameAnalysis.getHsu(d_isu, r_b), d_isu, sigma);
     fprintf(log, 't_su (bending XY): %.2f mm\n', t3*1000);
     fprintf(log, 't_su (bending YZ): %.2f mm\n\n', t4*1000);
 
@@ -178,11 +178,11 @@ function legDim = getLegDimsBending(I_allowed, W_su)
 end
 
 % REQUIRED LEG DIMENSIONS
-function legDimensions = getLegDimensions(log, n, JRF, E, Sy, Ssy, d_isu)
+function legDimensions = getLegDimensions(log, n, JRF, E, Sy, Ssy, d_isu, r_b)
 
     fprintf(log, 'Limiting Leg Dimensions:\n');
     % Calculate geometry
-    H_su = FrameAnalysis.getHsu(d_isu);
+    H_su = FrameAnalysis.getHsu(d_isu, r_b);
     W_su = FrameAnalysis.wsufunction(d_isu, H_su);
 
     % Buckling
@@ -219,10 +219,10 @@ end
 % -------- LIP --------
 
 % Equivalent force the lip must resist in the worst case (heel strike).
-% The knee moment creates a force couple at the ball radius (M_k / r_ball),
+% The knee moment creates a force couple at the ball radius (M_k / r_b),
 % and half the vertical JRF acts directly on the lip in compression.
-function F_lp = getFlp(M_k, F_k)
-    F_lp = M_k/FrameAnalysis.r_ball + F_k/2;  % moment contribution + direct JRF component
+function F_lp = getFlp(M_k, F_k, r_b)
+    F_lp = M_k/r_b + F_k/2;  % moment contribution + direct JRF component
 end
 
 % COMPRESSION
