@@ -52,15 +52,15 @@ Ball width: 60.00 mm
 Limiting Support Thicknesses:
 Buckling
 Pcr = 306.80 N
-H_su = 5.00 mm
-t_su (buckling): 0.12 mm
+H_su = 15.00 mm
+t_su (buckling): 0.25 mm
 Shear
 tau_allowed: 80040000.00 Pa
 t_su (shear): 0.14 mm
 Bending
 sigma_allowed: 138000000.00 Pa
-t_su (bending XY): 0.17 mm
-t_su (bending YZ): 0.91 mm
+t_su (bending XY): 0.50 mm
+t_su (bending YZ): 1.58 mm
 
 Limiting Leg Dimensions:
 Buckling
@@ -74,9 +74,9 @@ a: 1.68 mm
 b: 0.50 mm
 Bending
 sigma_allowed: 138000000.00 Pa
-I_allowed: 1548.24 mm^4
-a: 1.52 mm
-b: 0.46 mm
+I_allowed: 5756.31 mm^4
+a: 1.50 mm
+b: 0.45 mm
 
 Lip Thickness:
 F_lp: 658.46 N
