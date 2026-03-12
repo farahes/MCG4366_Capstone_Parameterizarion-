@@ -36,7 +36,7 @@ function plotAll(gaitSeries, pressureSeries)
 end
 
 % =========================================================
-%  PLOT ALL INTO AXES — draws all 6 plots into provided uiaxes
+%  PLOT ALL INTO AXES — draws all 6 plots into provided uiaxes FOR GUI
 %  axArray(1)=JRF, (2)=Moment, (3)=Angle,
 %  axArray(4)=Hydraulic, (5)=ROM, (6)=Servo
 % =========================================================
@@ -56,7 +56,6 @@ function drawJRF(series, ax)
     plot(ax, series.gait_pct, series.Fy_k,      'r-',  'LineWidth', 1.5, 'DisplayName', 'F_y  (vert.)');
     plot(ax, series.gait_pct, series.F_k_total, 'k--', 'LineWidth', 2,   'DisplayName', '|F|  (resultant)');
     yline(ax, 0, 'Color', [0.6 0.6 0.6], 'LineStyle', ':', 'HandleVisibility', 'off');
-    GaitPlots.shadingOnAx(ax);
     hold(ax, 'off');
     ax.XLabel.String = 'Gait Cycle (%)';
     ax.YLabel.String = 'Force (N)';
@@ -64,6 +63,8 @@ function drawJRF(series, ax)
     legend(ax, 'Location', 'best');
     ax.XGrid = 'on'; ax.YGrid = 'on';
     ax.XLim  = [0 100];
+    drawnow;
+    GaitPlots.shadingOnAx(ax);
 end
 
 function drawJointMoment(series, ax)
@@ -74,7 +75,6 @@ function drawJointMoment(series, ax)
     [~, idx] = max(abs(series.M_k));
     plot(ax, series.gait_pct(idx), series.M_k(idx), 'ro', 'MarkerSize', 8, 'LineWidth', 2, ...
          'DisplayName', sprintf('Peak: %.1f N·m (%.0f%%)', series.M_k(idx), series.gait_pct(idx)));
-    GaitPlots.shadingOnAx(ax);
     hold(ax, 'off');
     ax.XLabel.String = 'Gait Cycle (%)';
     ax.YLabel.String = 'Knee Moment (N·m)';
@@ -82,13 +82,14 @@ function drawJointMoment(series, ax)
     legend(ax, 'Location', 'best');
     ax.XGrid = 'on'; ax.YGrid = 'on';
     ax.XLim  = [0 100];
+    drawnow;
+    GaitPlots.shadingOnAx(ax);
 end
 
 function drawJointAngle(series, ax)
     cla(ax);
     hold(ax, 'on');
     plot(ax, series.gait_pct, series.theta_joint, 'b-', 'LineWidth', 1.5, 'DisplayName', '\theta_{knee}');
-    GaitPlots.shadingOnAx(ax);
     hold(ax, 'off');
     ax.XLabel.String = 'Gait Cycle (%)';
     ax.YLabel.String = 'Knee Joint Angle (°)';
@@ -96,6 +97,8 @@ function drawJointAngle(series, ax)
     legend(ax, 'Location', 'best');
     ax.XGrid = 'on'; ax.YGrid = 'on';
     ax.XLim  = [0 100];
+    drawnow;
+    GaitPlots.shadingOnAx(ax);
 end
 
 function drawHydraulicPressure(pressureSeries, ax)
@@ -108,13 +111,14 @@ function drawHydraulicPressure(pressureSeries, ax)
     plot(ax, pressureSeries.gait_pct, pressureSeries.T_damp_series, 'r-', 'LineWidth', 1.5, 'DisplayName', 'Damping torque [N·m]');
     ax.YLabel.String = 'Damping Torque (N·m)';
     yyaxis(ax, 'left');
-    GaitPlots.shadingOnAx(ax);
     hold(ax, 'off');
     ax.XLabel.String = 'Gait Cycle (%)';
     ax.Title.String  = 'Hydraulic Pressure & Damping Torque (Variable Stiffness)';
     legend(ax, 'Location', 'best');
     ax.XGrid = 'on'; ax.YGrid = 'on';
     ax.XLim  = [0 100];
+    drawnow;
+    GaitPlots.shadingOnAx(ax);
 end
 
 function drawRangeOfMotion(series, ax)
@@ -130,7 +134,6 @@ function drawRangeOfMotion(series, ax)
     plot(ax, series.gait_pct, series.theta_joint, 'b-', 'LineWidth', 2, 'DisplayName', '\theta_{knee}');
     yline(ax, theta_min, 'k--', 'LineWidth', 1, 'DisplayName', sprintf('Min θ = %.1f°', theta_min));
     yline(ax, theta_max, 'k--', 'LineWidth', 1, 'DisplayName', sprintf('Max θ = %.1f°', theta_max));
-    GaitPlots.shadingOnAx(ax);
     hold(ax, 'off');
     ax.XLabel.String = 'Gait Cycle (%)';
     ax.YLabel.String = 'Knee Joint Angle (°)';
@@ -138,6 +141,8 @@ function drawRangeOfMotion(series, ax)
     legend(ax, 'Location', 'best');
     ax.XGrid = 'on'; ax.YGrid = 'on';
     ax.XLim  = [0 100];
+    drawnow;
+    GaitPlots.shadingOnAx(ax);
 end
 
 function drawServoForce(pressureSeries, ax)
@@ -148,7 +153,6 @@ function drawServoForce(pressureSeries, ax)
     [F_max, idx] = max(pressureSeries.F_needle_series);
     plot(ax, pressureSeries.gait_pct(idx), F_max, 'ro', 'MarkerSize', 8, 'LineWidth', 2, ...
          'DisplayName', sprintf('Peak: %.4f N at %.0f%%', F_max, pressureSeries.gait_pct(idx)));
-    GaitPlots.shadingOnAx(ax);
     hold(ax, 'off');
     ax.XLabel.String = 'Gait Cycle (%)';
     ax.YLabel.String = 'Axial Needle Force (N)';
@@ -156,6 +160,8 @@ function drawServoForce(pressureSeries, ax)
     legend(ax, 'Location', 'best');
     ax.XGrid = 'on'; ax.YGrid = 'on';
     ax.XLim  = [0 100];
+    drawnow;
+    GaitPlots.shadingOnAx(ax);
 end
 
 % Shared phase shading — works on any axes handle (regular or uiaxes)
