@@ -384,11 +384,11 @@ function results = getResults(BW, H)
 
     fclose(log);
 
-    % Return struct so GUI can also render plots directly into uiaxes
-    results                = struct();
-    results.table          = displayTable;
-    results.gaitSeries     = gaitSeries;
-    results.pressureSeries = pressureSeries;
+    % Store series data in root appdata so the GUI can retrieve it for inline plots
+    setappdata(0, 'gaitSeries',     gaitSeries);
+    setappdata(0, 'pressureSeries', pressureSeries);
+
+    results = displayTable;
 
 end
 
