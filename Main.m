@@ -378,12 +378,17 @@ function results = getResults(BW, H)
     results.L_cyl_max  = hydraulics.L_cyl_max_mm;
 
     displayTable = Main.displayResults(results);    % display results to GUI
-    results = displayTable;
 
-    % Generate all 6 gait-cycle plots
+    % Generate all 6 gait-cycle plots in separate figure windows
     GaitPlots.plotAll(gaitSeries, pressureSeries);
 
     fclose(log);
+
+    % Return struct so GUI can also render plots directly into uiaxes
+    results                = struct();
+    results.table          = displayTable;
+    results.gaitSeries     = gaitSeries;
+    results.pressureSeries = pressureSeries;
 
 end
 

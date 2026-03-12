@@ -36,6 +36,145 @@ function plotAll(gaitSeries, pressureSeries)
 end
 
 % =========================================================
+%  PLOT ALL INTO AXES — draws all 6 plots into provided uiaxes
+%  axArray(1)=JRF, (2)=Moment, (3)=Angle,
+%  axArray(4)=Hydraulic, (5)=ROM, (6)=Servo
+% =========================================================
+function plotAllInAxes(gaitSeries, pressureSeries, axArray)
+    GaitPlots.drawJRF(gaitSeries, axArray(1));
+    GaitPlots.drawJointMoment(gaitSeries, axArray(2));
+    GaitPlots.drawJointAngle(gaitSeries, axArray(3));
+    GaitPlots.drawHydraulicPressure(pressureSeries, axArray(4));
+    GaitPlots.drawRangeOfMotion(gaitSeries, axArray(5));
+    GaitPlots.drawServoForce(pressureSeries, axArray(6));
+end
+
+function drawJRF(series, ax)
+    cla(ax);
+    hold(ax, 'on');
+    plot(ax, series.gait_pct, series.Fx_k,      'b-',  'LineWidth', 1.5, 'DisplayName', 'F_x  (horiz.)');
+    plot(ax, series.gait_pct, series.Fy_k,      'r-',  'LineWidth', 1.5, 'DisplayName', 'F_y  (vert.)');
+    plot(ax, series.gait_pct, series.F_k_total, 'k--', 'LineWidth', 2,   'DisplayName', '|F|  (resultant)');
+    yline(ax, 0, 'Color', [0.6 0.6 0.6], 'LineStyle', ':', 'HandleVisibility', 'off');
+    GaitPlots.shadingOnAx(ax);
+    hold(ax, 'off');
+    ax.XLabel.String = 'Gait Cycle (%)';
+    ax.YLabel.String = 'Force (N)';
+    ax.Title.String  = 'Knee Joint Reaction Force During Gait';
+    legend(ax, 'Location', 'best');
+    ax.XGrid = 'on'; ax.YGrid = 'on';
+    ax.XLim  = [0 100];
+end
+
+function drawJointMoment(series, ax)
+    cla(ax);
+    hold(ax, 'on');
+    plot(ax, series.gait_pct, series.M_k, 'b-', 'LineWidth', 1.5, 'DisplayName', 'M_k');
+    yline(ax, 0, 'Color', [0.6 0.6 0.6], 'LineStyle', ':', 'HandleVisibility', 'off');
+    [~, idx] = max(abs(series.M_k));
+    plot(ax, series.gait_pct(idx), series.M_k(idx), 'ro', 'MarkerSize', 8, 'LineWidth', 2, ...
+         'DisplayName', sprintf('Peak: %.1f N·m (%.0f%%)', series.M_k(idx), series.gait_pct(idx)));
+    GaitPlots.shadingOnAx(ax);
+    hold(ax, 'off');
+    ax.XLabel.String = 'Gait Cycle (%)';
+    ax.YLabel.String = 'Knee Moment (N·m)';
+    ax.Title.String  = 'Knee Joint Moment During Gait';
+    legend(ax, 'Location', 'best');
+    ax.XGrid = 'on'; ax.YGrid = 'on';
+    ax.XLim  = [0 100];
+end
+
+function drawJointAngle(series, ax)
+    cla(ax);
+    hold(ax, 'on');
+    plot(ax, series.gait_pct, series.theta_joint, 'b-', 'LineWidth', 1.5, 'DisplayName', '\theta_{knee}');
+    GaitPlots.shadingOnAx(ax);
+    hold(ax, 'off');
+    ax.XLabel.String = 'Gait Cycle (%)';
+    ax.YLabel.String = 'Knee Joint Angle (°)';
+    ax.Title.String  = 'Knee Joint Angle During Gait';
+    legend(ax, 'Location', 'best');
+    ax.XGrid = 'on'; ax.YGrid = 'on';
+    ax.XLim  = [0 100];
+end
+
+function drawHydraulicPressure(pressureSeries, ax)
+    cla(ax);
+    yyaxis(ax, 'left');
+    hold(ax, 'on');
+    plot(ax, pressureSeries.gait_pct, pressureSeries.P_series / 1e6, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Pressure [MPa]');
+    ax.YLabel.String = 'Hydraulic Pressure (MPa)';
+    yyaxis(ax, 'right');
+    plot(ax, pressureSeries.gait_pct, pressureSeries.T_damp_series, 'r-', 'LineWidth', 1.5, 'DisplayName', 'Damping torque [N·m]');
+    ax.YLabel.String = 'Damping Torque (N·m)';
+    yyaxis(ax, 'left');
+    GaitPlots.shadingOnAx(ax);
+    hold(ax, 'off');
+    ax.XLabel.String = 'Gait Cycle (%)';
+    ax.Title.String  = 'Hydraulic Pressure & Damping Torque (Variable Stiffness)';
+    legend(ax, 'Location', 'best');
+    ax.XGrid = 'on'; ax.YGrid = 'on';
+    ax.XLim  = [0 100];
+end
+
+function drawRangeOfMotion(series, ax)
+    theta_min = min(series.theta_joint);
+    theta_max = max(series.theta_joint);
+    ROM       = theta_max - theta_min;
+    cla(ax);
+    hold(ax, 'on');
+    x_fill = [series.gait_pct; flipud(series.gait_pct)];
+    y_fill = [repmat(theta_min, size(series.gait_pct)); flipud(series.theta_joint)];
+    patch(ax, x_fill, y_fill, [0.7 0.85 1.0], 'EdgeColor', 'none', 'FaceAlpha', 0.6, ...
+          'DisplayName', 'Flexion envelope');
+    plot(ax, series.gait_pct, series.theta_joint, 'b-', 'LineWidth', 2, 'DisplayName', '\theta_{knee}');
+    yline(ax, theta_min, 'k--', 'LineWidth', 1, 'DisplayName', sprintf('Min θ = %.1f°', theta_min));
+    yline(ax, theta_max, 'k--', 'LineWidth', 1, 'DisplayName', sprintf('Max θ = %.1f°', theta_max));
+    GaitPlots.shadingOnAx(ax);
+    hold(ax, 'off');
+    ax.XLabel.String = 'Gait Cycle (%)';
+    ax.YLabel.String = 'Knee Joint Angle (°)';
+    ax.Title.String  = sprintf('Range of Motion — ROM = %.1f°', ROM);
+    legend(ax, 'Location', 'best');
+    ax.XGrid = 'on'; ax.YGrid = 'on';
+    ax.XLim  = [0 100];
+end
+
+function drawServoForce(pressureSeries, ax)
+    cla(ax);
+    hold(ax, 'on');
+    plot(ax, pressureSeries.gait_pct, pressureSeries.F_needle_series, 'm-', 'LineWidth', 1.5, ...
+         'DisplayName', 'Needle force F_{axial}');
+    [F_max, idx] = max(pressureSeries.F_needle_series);
+    plot(ax, pressureSeries.gait_pct(idx), F_max, 'ro', 'MarkerSize', 8, 'LineWidth', 2, ...
+         'DisplayName', sprintf('Peak: %.4f N at %.0f%%', F_max, pressureSeries.gait_pct(idx)));
+    GaitPlots.shadingOnAx(ax);
+    hold(ax, 'off');
+    ax.XLabel.String = 'Gait Cycle (%)';
+    ax.YLabel.String = 'Axial Needle Force (N)';
+    ax.Title.String  = 'Servo Motor Needle Force During Gait';
+    legend(ax, 'Location', 'best');
+    ax.XGrid = 'on'; ax.YGrid = 'on';
+    ax.XLim  = [0 100];
+end
+
+% Shared phase shading — works on any axes handle (regular or uiaxes)
+function shadingOnAx(ax)
+    y  = ax.YLim;
+    h1 = patch(ax, [0 60 60 0],     [y(1) y(1) y(2) y(2)], [0.98 0.96 0.80], ...
+               'EdgeColor', 'none', 'FaceAlpha', 0.35, 'HandleVisibility', 'off');
+    h2 = patch(ax, [60 100 100 60], [y(1) y(1) y(2) y(2)], [0.80 0.96 0.98], ...
+               'EdgeColor', 'none', 'FaceAlpha', 0.35, 'HandleVisibility', 'off');
+    h1.ZData = -ones(1,4);
+    h2.ZData = -ones(1,4);
+    y_label = y(1) + 0.04*(y(2)-y(1));
+    text(ax, 30, y_label, 'Stance', 'HorizontalAlignment', 'center', ...
+         'Color', [0.5 0.4 0], 'FontSize', 8, 'FontAngle', 'italic');
+    text(ax, 80, y_label, 'Swing',  'HorizontalAlignment', 'center', ...
+         'Color', [0 0.4 0.5], 'FontSize', 8, 'FontAngle', 'italic');
+end
+
+% =========================================================
 %  PLOT 1 — JOINT REACTION FORCE DURING GAIT
 % =========================================================
 % Plots the horizontal (Fx), vertical (Fy), and resultant (|F|)
