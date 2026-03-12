@@ -1,3 +1,16 @@
+% Main is the top-level entry point for the prosthetic knee parameterization tool.
+% Call Main.getResults(BW, H) with patient body weight [kg] and height [m] to run
+% the full analysis pipeline and receive a results table for the GUI.
+%
+% Analysis sequence:
+%   1. Knee joint reaction force & moment  — JointReactionForce (inverse dynamics)
+%   2. Shaft diameter sizing               — ShaftAnalysis (fatigue, bending, shear)
+%   3. Journal bearing selection           — JournalBearing (McMaster-Carr catalogue lookup)
+%   4. Frame support & leg cross-section   — FrameAnalysis (buckling, shear, bending)
+%   5. Needle valve sizing & flow plot     — HydraulicNeedleValve
+%   6. Hydraulic pin diameter              — HydrPin (static bending & shear)
+%   7. Pyramid adapter safety factors      — PyramidAdapter (von Mises)
+
 %{
 
 Subscript Convention
@@ -14,18 +27,6 @@ py : pyramid adpater
 
 %}
 
-% Main is the top-level entry point for the prosthetic knee parameterization tool.
-% Call Main.getResults(BW, H) with patient body weight [kg] and height [m] to run
-% the full analysis pipeline and receive a results table for the GUI.
-%
-% Analysis sequence:
-%   1. Knee joint reaction force & moment  — JointReactionForce (inverse dynamics)
-%   2. Shaft diameter sizing               — ShaftAnalysis (fatigue, bending, shear)
-%   3. Journal bearing selection           — JournalBearing (McMaster-Carr catalogue lookup)
-%   4. Frame support & leg cross-section   — FrameAnalysis (buckling, shear, bending)
-%   5. Needle valve sizing & flow plot     — HydraulicNeedleValve
-%   6. Hydraulic pin diameter              — HydrPin (static bending & shear)
-%   7. Pyramid adapter safety factors      — PyramidAdapter (von Mises)
 classdef Main
 
 properties (Constant)
@@ -36,31 +37,45 @@ properties (Constant)
 
     % SHAFT MATERIALS
 
-    % 1045 HR Carbon Steel
-    Sy_s = 310*1000000; % [Pa] yield strength
-    Su_s = 565*1000000; % [Pa] ultimate strength
-    E_s = 200*1000000000; % [Pa] Young's Modulus
-    nu_s = 0.29;   % Poisson's ratio
+    % 1144 Carbon Steel (https://www.azom.com/article.aspx?ArticleID=6595)
+    Sy_s = 620e6; % [Pa] yield strength
+    Su_s = 745e6; % [Pa] ultimate strength
+    E_s = 190e9; % [Pa] Young's Modulus
+    nu_s = 0.27;   % Poisson's ratio
 
     % FRAME MATERIALS
 
     % 6061 T6 Aluminum
-    Sy_fr = 276*1000000;    % [Pa] yield strength
-    Su_fr = 310*1000000;    % [Pa] ultimate strength
-    E_fr = 68.9*1000000000; % [Pa] Young's Modulus
+    Sy_fr = 276e6;    % [Pa] yield strength
+    Su_fr = 310e6;    % [Pa] ultimate strength
+    E_fr = 68.9e9; % [Pa] Young's Modulus
     nu_fr = 0.33;   % Poisson's ratio
     %{
     % 1010 Carbon Steel
-    Sy_fr = 365*1000000;    % [Pa] yield strength
-    Su_fr = 305*1000000;    % [Pa] ultimate strength
-    E_fr = 190*1000000000; % [Pa] Young's Modulus
+    Sy_fr = 365e6;    % [Pa] yield strength
+    Su_fr = 305e6;    % [Pa] ultimate strength
+    E_fr = 190e9; % [Pa] Young's Modulus
     nu_fr = 0.27;   % Poisson's ratio
     %}
 
     % PYRAMID ADAPTER MATERIAL
 
-    % Ti-6Al-4V
-    Sy_py = 880; % [MPa] yield strength 
+    % Stainless Steel (none specified, assume AISI 316L )
+    Sy_py = 276; % [MPa] yield strength
+
+% --------SIZING CHART--------
+% Sizing is implemented to reduce cost and lead time to manufacture custom
+% sizes for each patient
+
+    % STANDARD SHAFT SIZES
+    % arranged into a matrix where each row is a size (S/M/L)
+    % each row is arranged like: [L_s D_s d_s]
+    Shaft_SZ = [0.06 0.022 0.018; 0.0615 0.024 0.020; 0.063 0.026 0.022]; % dimensions in [m]
+
+    % STANDARD BALL SIZES
+    % arranged into a matrix where each row is a size (S/M/L)
+    % each row is arranged like: [diameter width]
+    Ball_SZ = [0.08 0.06; 0.082 0.0615; 0.084 0.063]; % dimensions in [m]
 
 end
     
@@ -91,6 +106,8 @@ function displayTable = displayResults(results)
             'l_s'
             'Journal bearing'
             'w_k'
+            'r_b'
+            'w_b'
             'd_isu'
             't_su'
             'L_fr'
@@ -121,6 +138,8 @@ function displayTable = displayResults(results)
             'Total length of the shaft'
             'Journal bearing specifications'
             'Width of the square key'
+            'Radius of the ball'
+            'Width of the ball'
             'Inner diameter of the supports'
             'Thickness of the supports'
             'Length of the frame legs'
@@ -145,15 +164,17 @@ function displayTable = displayResults(results)
             'Cylinder extended length at max gait flexion'
         }, ...
         {
-            results.D_s
-            results.d_s
-            results.L_s 
-            results.l_s
+            round(results.D_s,2)
+            round(results.d_s,2)
+            round(results.L_s,2)
+            round(results.l_s,2)
             sprintf('ID: %.2f, OD: %.2f, Length: %.2f, Part no. %s', results.JBid, results. JBod, results.JBl, results.JBpart)
-            results.w_k
-            results.d_isu 
+            round(results.w_k,2)
+            round(results.r_b,2)
+            round(results.w_b,2)
+            round(results.d_isu,2)
             results.t_su 
-            results.L_fr 
+            round(results.L_fr,2)
             results.a 
             results.b 
             results.t_lp
@@ -162,9 +183,9 @@ function displayTable = displayResults(results)
             results.Cv
             results.n_upper_py
             results.n_lower_py
-            results.d_pin
-            results.l_pin_upper
-            results.l_pin_lower
+            round(results.d_pin,2)
+            round(results.l_pin_upper,2)
+            round(results.l_pin_lower,2)
             results.D_cyl
             results.delta_p_req
             results.Q_max_hyd
@@ -180,6 +201,8 @@ function displayTable = displayResults(results)
             'mm'
             'mm'
             'mm (diameters and length)'
+            'mm'
+            'mm'
             'mm'
             'mm'
             'mm'
@@ -226,7 +249,7 @@ function results = getResults(BW, H)
         error('Could not create log file');
     end
     fprintf(log, '/***************************************/\n');
-    fprintf(log, '/          WORKING ANALYSIS LOG         /\n');
+    fprintf(log, '/               ANALYSIS LOG            /\n');
     fprintf(log, '/***************************************/\n\n');
 
     % print patient data
@@ -248,66 +271,90 @@ function results = getResults(BW, H)
 
     fprintf(log, '-------- SHAFT ANALYSIS --------:\n\n');
 
-    % get shaft dimensions
-    rawDiameter = ShaftAnalysis.getShaftDiameter( ...
-        log, ...
-        Main.n_shaft, ...
-        Main.Su_s, ...
-        Main.Sy_s, ...
-        Main.getSsy(Main.Sy_s), ...
-        F_kx, ...
-        F_ky, ...
-        M_k ...
-        );
+    sz = 1; % index representing the row in the sizing matrix (start with the smallest size)
 
-    % get journal bearing specs
-    fprintf(log, 'Journal bearing for inner diameter of %.2fmm:\n', rawDiameter.d*1000);
-    JB = ShaftAnalysis.getJB(F_k, rawDiameter.d);
-    fprintf(log, 'ID: %.2fmm, OD: %.2fmm, Length: %.2fmm, Part no. %s\n\n', JB.id*1000, JB.od*1000, JB.l*1000, JB.part{1});
+    % iterate until shaft length and diameter converge to the same size
+    while (true)
+        fprintf(log, 'Size %i:\n', sz);
+        % get limiting shaft dimension
+        rawDiameter = ShaftAnalysis.getShaftDiameter( ...
+            log, ...
+            Main.n_shaft, ...
+            Main.Su_s, ...
+            Main.Sy_s, ...
+            Main.getSsy(Main.Sy_s), ...
+            F_kx, ...
+            F_ky, ...
+            M_k, ...
+            Main.Shaft_SZ(sz,1) ...
+            );
 
-    % get adjusted shaft dimensions
-    adjDiameter = ShaftAnalysis.getFinalShaftDimensions(JB);
-    fprintf(log, 'Adjusted shaft dimensions after journal bearing selection:\n');
-    D_s = rawDiameter.D;
-    d_s = adjDiameter.d_s;
-    fprintf(log, 'D_s: %.2f mm\n', D_s*1000);
-    fprintf(log, 'd_s: %.2f mm\n', d_s*1000);
-    fprintf(log, 'L_s: %.2f mm\n', ShaftAnalysis.L_s*1000);
-    fprintf(log, 'l_s: %.2f mm\n\n', adjDiameter.l_s*1000);
+        % get journal bearing specs
+        fprintf(log, 'Journal bearing for inner diameter of %.2fmm:\n', rawDiameter.d*1000);
+        JB = ShaftAnalysis.getJB(F_k, rawDiameter.d);
+        fprintf(log, 'ID: %.2fmm, OD: %.2fmm, Length: %.2fmm, Part no. %s\n\n', JB.id*1000, JB.od*1000, JB.l*1000, JB.part{1});
+    
+        % get adjusted shaft dimensions from journal bearing
+        adjDiameter = ShaftAnalysis.getFinalShaftDimensions(JB, Main.Shaft_SZ(sz,1));
+        fprintf(log, 'Adjusted shaft dimensions after journal bearing selection:\n');
+        d_s = adjDiameter.d_s;
+        D_s = adjDiameter.d_s + 0.004;  % Large diameter will be 4mm larger than the small diameter
+        fprintf(log, 'D_s: %.2f mm\n', D_s*1000);
+        fprintf(log, 'd_s: %.2f mm\n', d_s*1000);
+        fprintf(log, 'L_s: %.2f mm\n', Main.Shaft_SZ(sz,1)*1000);
+        fprintf(log, 'l_s: %.2f mm\n\n', adjDiameter.l_s*1000);
+    
+        % check torsional deflection
+        while ~ShaftAnalysis.getCheckTorsion(log, M_k, Main.getG(Main.E_s, Main.nu_s), Main.Shaft_SZ(sz,1), D_s, adjDiameter.l_s-Main.Shaft_SZ(sz,1), d_s)
+            D_s = D_s + 0.001;
+            d_s = d_s + 0.001;
+            JB = ShaftAnalysis.getJB(F_k, d_s);
+            adjDiameter = ShaftAnalysis.getFinalShaftDimensions(JB);
+        end
 
-    % check torsional deflection
-    while ~ShaftAnalysis.getCheckTorsion(log, M_k, Main.getG(Main.E_s, Main.nu_s), ShaftAnalysis.L_s, D_s, adjDiameter.l_s-ShaftAnalysis.L_s, d_s)
-        D_s = D_s + 0.001;
-        d_s = d_s + 0.001;
-        JB = ShaftAnalysis.getJB(F_k, d_s);
-        adjDiameter = ShaftAnalysis.getFinalShaftDimensions(JB);
+        % check if diameter size is larger than the length size
+        if (d_s > Main.Shaft_SZ(sz,3)) || (D_s > Main.Shaft_SZ(sz,2))
+            fprintf(log, 'Shaft diameter and length sizes do not match.\n\n');
+            sz = sz + 1;
+        else
+            break;
+        end
     end
 
-    D_s = ceil(rawDiameter.D*1000)/1000;    % round diameter up to the nearest mm
-    fprintf(log, '\nFinal adjusted shaft dimensions:\n');
-    fprintf(log, 'D_s: %.2f mm\n', D_s*1000);
-    fprintf(log, 'd_s: %.2f mm\n', d_s*1000);
-    fprintf(log, 'L_s: %.2f mm\n', ShaftAnalysis.L_s*1000);
+    fprintf(log, 'Shaft diameter and length sizes converged!\n\n');
+
+    fprintf(log, 'Final adjusted shaft dimensions:\n');
+    fprintf(log, 'D_s: %.2f mm\n', Main.Shaft_SZ(sz,2)*1000);
+    fprintf(log, 'd_s: %.2f mm\n', Main.Shaft_SZ(sz,3)*1000);
+    fprintf(log, 'L_s: %.2f mm\n', Main.Shaft_SZ(sz,1)*1000);
     fprintf(log, 'l_s: %.2f mm\n\n', adjDiameter.l_s*1000);
 
     % get key dimension
-    w_k = ShaftAnalysis.getWk(D_s);
+    w_k = ShaftAnalysis.getWk(Main.Shaft_SZ(sz,2));
     fprintf(log, 'Width of key: %.2f mm\n\n', w_k*1000);
+
+    fprintf(log, '-------- SELECT BALL SIZE FOR CORRESPONDING SHAFT SIZE --------:\n\n');
+
+    r_b = Main.Ball_SZ(sz,1)/2; % [m], radius of the ball
+    w_b = Main.Ball_SZ(sz,2);   % [m], width of the ball
+
+    fprintf(log, 'Ball radius: %.2f mm\n', r_b*1000);
+    fprintf(log, 'Ball width: %.2f mm\n\n', w_b*1000);
 
     fprintf(log, '-------- FRAME ANALYSIS --------:\n\n');
 
     % get support thickness
-    t_s = FrameAnalysis.getSupportThickness(log, Main.n_frame, F_k, Main.E_fr, Main.getSsy(Main.Sy_fr), Main.Sy_fr, JB.od);
+    t_s = FrameAnalysis.getSupportThickness(log, Main.n_frame, F_k, Main.E_fr, Main.getSsy(Main.Sy_fr), Main.Sy_fr, JB.od, r_b);
 
     % get leg cross-section dimensions
-    legDimensions = FrameAnalysis.getLegDimensions(log, Main.n_frame, F_k, Main.E_fr, Main.Sy_fr, Main.getSsy(Main.Sy_fr), JB.od);
+    legDimensions = FrameAnalysis.getLegDimensions(log, Main.n_frame, F_k, Main.E_fr, Main.Sy_fr, Main.getSsy(Main.Sy_fr), JB.od, r_b);
 
     % get lip thickness
-    F_lp = FrameAnalysis.getFlp(M_k, F_k);
-    t_lp = FrameAnalysis.getLipThicknessComp(F_lp, FrameAnalysis.getSigma(Main.Sy_fr, Main.n_frame), FrameAnalysis.w_ball);
+    F_lp = FrameAnalysis.getFlp(M_k, F_k, r_b);
+    t_lp = FrameAnalysis.getLipThicknessComp(F_lp, FrameAnalysis.getSigma(Main.Sy_fr, Main.n_frame), w_b);
     fprintf(log, '\nLip Thickness:\n');
     fprintf(log, 'F_lp: %.2f N\n', F_lp);
-    fprintf(log, 't_lp: %.2f mm\n', t_lp*1000);
+    fprintf(log, 't_lp: %.2f mm\n\n', t_lp*1000);
 
     % get needle valve calculations and plot
     valve = HydraulicNeedleValve.getValveSize();
@@ -336,7 +383,7 @@ function results = getResults(BW, H)
 
     % get hydraulic pin dimensions
     fprintf(log, '-------- HYDRAULIC PIN ANALYSIS --------:\n\n');
-    pin = HydrPin.PinDim(M_k, FrameAnalysis.w_ball, FrameAnalysis.r_ball, valve.d_best_mm/1000);
+    pin = HydrPin.PinDim(M_k, w_b, r_b, valve.d_best_mm/1000);
     fprintf(log, 'Pin diameter: %.2f mm\n', pin.diameter*1000);
     fprintf(log, 'Upper pin length: %.2f mm\n', pin.length_upper*1000);
     fprintf(log, 'Lower pin length: %.2f mm\n\n', pin.length_lower*1000);
@@ -345,15 +392,17 @@ function results = getResults(BW, H)
     FoS_yield_u = PyramidAdapter.getFoS_yield_u(F_kx, F_ky, Main.Sy_py);
     FoS_yield_b = PyramidAdapter.getFoS_yield_b(F_kx, F_ky, Main.Sy_py);
 
-    results.D_s = D_s*1000;
-    results.d_s = adjDiameter.d_s*1000;
-    results.L_s = ShaftAnalysis.L_s*1000;
+    results.D_s = Main.Shaft_SZ(sz,2)*1000;
+    results.d_s = Main.Shaft_SZ(sz,3)*1000;
+    results.L_s = Main.Shaft_SZ(sz,1)*1000;
     results.l_s = adjDiameter.l_s*1000;
     results.JBid = JB.id*1000;
     results. JBod = JB.od*1000;
     results.JBl = JB.l*1000;
     results.JBpart = JB.part{1};
     results.w_k = w_k*1000;
+    results.r_b = r_b*1000;
+    results.w_b = w_b*1000;
     results.d_isu = JB.od*1000;
     results.t_su = t_s*1000;
     results.L_fr = FrameAnalysis.L_fr*1000;

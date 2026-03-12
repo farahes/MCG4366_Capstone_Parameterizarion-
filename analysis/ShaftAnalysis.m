@@ -16,8 +16,7 @@ properties (Constant)
     C_T = 1.0;  % termperature factor
     C_R = 0.897;    % Reliability factor
 
-    % SHAFT GEOMETRY
-    L_s = 0.08; % [m] length of the large diameter of the shaft
+    % FIXED SHAFT GEOMETRY
     lex_s = 0.006;  % [m] extra length at end of shaft for retaining ring and hangoff
 
 end
@@ -105,7 +104,7 @@ function bool = getCheckTorsion(log, T, G, L1, D1, L2, D2)
     theta_allowed = deg2rad(1);   % 1 degree maximum allowable twist angle
     theta = (32*T/(pi()*G))*((L1/D1^4) + (L2/D2^4));
     bool = theta < theta_allowed;
-    fprintf(log, 'Torsional deflection for D_s=%.2fmm L_s=%.2fmm d_s=%.2fmm l_s=%.2fmm: theta = %.2f degrees\n', D1*1000, L1*1000, D2*1000, L2*1000, rad2deg(theta));
+    fprintf(log, 'Torsional deflection for D_s=%.2fmm L_s=%.2fmm d_s=%.2fmm l_s=%.2fmm: theta = %.2f degrees\n\n', D1*1000, L1*1000, D2*1000, L2*1000, rad2deg(theta));
 end
 
 % REQUIRED SHAFT DIAMETER
@@ -114,7 +113,7 @@ end
 % D_s  (large-section at keyway):   checked for ASME-Elliptic fatigue and static bending.
 % d_s  (small-section at bearings): checked for ASME-Elliptic fatigue and static shear.
 % The larger value from each pair of checks is returned as the required diameter.
-function shaftDiameter = getShaftDiameter(log, n, Su, Sy, Ssy, JRFx, JRFy, M_k)
+function shaftDiameter = getShaftDiameter(log, n, Su, Sy, Ssy, JRFx, JRFy, M_k, L_s)
 
     fprintf(log, 'Limiting Shaft Diameters:\n');
 
@@ -122,15 +121,15 @@ function shaftDiameter = getShaftDiameter(log, n, Su, Sy, Ssy, JRFx, JRFy, M_k)
     % Fatigue
     D1 = ShaftAnalysis.getShaftDiameterFatigue( ...
         n, ...
-        ShaftAnalysis.getA(ShaftAnalysis.Kf_k, ShaftAnalysis.getM(ShaftAnalysis.L_s, ShaftAnalysis.getV(JRFx, JRFy)), ShaftAnalysis.Kf_k, ShaftAnalysis.getT(M_k)), ...
+        ShaftAnalysis.getA(ShaftAnalysis.Kf_k, ShaftAnalysis.getM(L_s, ShaftAnalysis.getV(JRFx, JRFy)), ShaftAnalysis.Kf_k, ShaftAnalysis.getT(M_k)), ...
         ShaftAnalysis.getB(ShaftAnalysis.Kf_k, 0, ShaftAnalysis.Kf_k, 0), ...
         ShaftAnalysis.getSn(Su), ...
         Su ...
         );
-    fprintf(log, 'D_s (fatigue loading): %.2f mm\n', D1*1000);
+    fprintf(log, 'D_s (fatigue loading) = %.2f mm\n', D1*1000);
     % Pure bending
-    D2 = ShaftAnalysis.getShaftDiameterBending(n, Sy, ShaftAnalysis.getM(ShaftAnalysis.L_s, ShaftAnalysis.getV(JRFx, JRFy)));
-    fprintf(log, 'D_s (bending stress): %.2f mm\n', D2*1000);
+    D2 = ShaftAnalysis.getShaftDiameterBending(n, Sy, ShaftAnalysis.getM(L_s, ShaftAnalysis.getV(JRFx, JRFy)));
+    fprintf(log, 'D_s (bending stress) = %.2f mm\n', D2*1000);
 
     % Determine limiting d_s
     % Fatigue
@@ -141,17 +140,20 @@ function shaftDiameter = getShaftDiameter(log, n, Su, Sy, Ssy, JRFx, JRFy, M_k)
         ShaftAnalysis.getSn(Su), ...
         Su ...
         );
-    fprintf(log, 'd_s (fatigue loading): %.2f mm\n', d1*1000);
+    fprintf(log, 'd_s (fatigue loading) = %.2f mm\n', d1*1000);
     % Static shear
     d2 = ShaftAnalysis.getShaftDiameterShear( ...
         n, ...
         Ssy, ...
         ShaftAnalysis.getV(JRFx, JRFy) ...
         );
+    fprintf(log, 'd_s (shear loading) = %.2f mm\n', d2*1000);
 
     shaftDiameter.D = max([D1, D2]);
     shaftDiameter.d = max([d1, d2]);
-    fprintf(log, 'd_s (shear loading): %.2f mm\n\n', d2*1000);
+    fprintf(log, 'Limiting d_s = %.2f mm\n', shaftDiameter.d*1000);
+    fprintf(log, 'Limiting D_s = %.2f mm\n', shaftDiameter.D*1000);
+    
 end
 
 % --------JOURNAL BEARING--------
@@ -169,8 +171,8 @@ end
 % l_s = L_s (large section) + 2*lex_s (retaining ring clearance, one each end)
 %           + 2 * JB.length  (one bearing seated at each end of the small-diameter section).
 % d_s is set equal to the journal bearing bore ID.
-function shaftDimensions = getFinalShaftDimensions(JBdim)
-    shaftDimensions.l_s = ShaftAnalysis.L_s + 2*ShaftAnalysis.lex_s + 2*JBdim.l;
+function shaftDimensions = getFinalShaftDimensions(JBdim, L_s)
+    shaftDimensions.l_s = L_s + 2*ShaftAnalysis.lex_s + 2*JBdim.l;
     shaftDimensions.d_s = JBdim.id;
 end
 
