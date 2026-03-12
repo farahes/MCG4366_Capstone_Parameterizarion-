@@ -26,6 +26,8 @@ methods (Static)
 % =========================================================
 %  PLOT ALL — convenience wrapper that generates all 6 figures
 % =========================================================
+%{
+TURNED OFF SEPARATE PLOTS, ONLY PLOT IN GUI
 function plotAll(gaitSeries, pressureSeries)
     GaitPlots.plotJRF(gaitSeries);
     GaitPlots.plotJointMoment(gaitSeries);
@@ -34,7 +36,7 @@ function plotAll(gaitSeries, pressureSeries)
     GaitPlots.plotRangeOfMotion(gaitSeries);
     GaitPlots.plotServoForce(pressureSeries);
 end
-
+%}
 % =========================================================
 %  PLOT ALL INTO AXES — draws all 6 plots into provided uiaxes FOR GUI
 %  axArray(1)=JRF, (2)=Moment, (3)=Angle,

@@ -358,7 +358,7 @@ function results = getResults(BW, H)
 
     % get needle valve calculations and plot
     valve = HydraulicNeedleValve.getValveSize();
-    HydraulicNeedleValve.plot(valve);
+    % HydraulicNeedleValve.plot(valve); TURNED OFF, NO CHANGE IN PLOT
 
     % get full hydraulic unit sizing (cylinder bore, flow rate, fluid properties, restriction length)
     fprintf(log, '-------- HYDRAULIC UNIT ANALYSIS --------:\n\n');
@@ -429,7 +429,7 @@ function results = getResults(BW, H)
     displayTable = Main.displayResults(results);    % display results to GUI
 
     % Generate all 6 gait-cycle plots in separate figure windows
-    GaitPlots.plotAll(gaitSeries, pressureSeries);
+    % GaitPlots.plotAll(gaitSeries, pressureSeries); TURNED OFF
 
     fclose(log);
 
