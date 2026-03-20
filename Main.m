@@ -77,6 +77,9 @@ properties (Constant)
     % each row is arranged like: [diameter width]
     Ball_SZ = [0.08 0.06; 0.082 0.0615; 0.084 0.063]; % dimensions in [m]
 
+    % STANDARD FRAME SIZES
+    % TBC
+
 end
     
 methods (Static)
@@ -229,6 +232,54 @@ function displayTable = displayResults(results)
         }, ...
         'VariableNames', {'Variable Name','Description','Value','Units'} ...
     );
+
+end
+
+% export results to text files for SolidWorks integration
+function exportDimensions(dimensions)
+    
+    basePath = fileparts(mfilename('fullpath'));
+
+    %-------- SHAFT DIMENSIONS --------
+    shaft_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'shaft.txt');
+    shaft = fopen(shaft_filePath, 'w');
+    if shaft == -1
+        error('Could not create shaft.txt');
+    end
+
+    fprintf(shaft, '"large_shaft_diameter"=%.2f\n',dimensions.D_s);
+    fprintf(shaft, '"small_shaft_diameter"=%.2f\n',dimensions.d_s);
+    fprintf(shaft, '"length_shaft"=%.2f\n',dimensions.l_s);
+    fprintf(shaft, '"large_length_shaft"=%.2f\n',dimensions.L_s/2); % divided by two bc that's how the SW part is made
+    fprintf(shaft, '"width_key"=%.2f\n',dimensions.w_k + 0.5); % key width + 0.5mm tolerance
+    fclose(shaft);
+
+    %-------- KEY DIMENSIONS --------
+    key_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'key.txt');
+    key = fopen(key_filePath, 'w');
+    if key == -1
+        error('Could not create key.txt');
+    end
+
+    fprintf(key, '"width_key"=%.2f\n',dimensions.w_k);
+    fprintf(key, '"length_key"=%.2f\n',dimensions.L_s - 0.5);
+    fclose(key);
+
+    %-------- BALL DIMENSIONS --------
+    ball_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'ball.txt');
+    ball = fopen(ball_filePath, 'w');
+    if ball == -1
+        error('Could not create key.txt');
+    end
+
+    fprintf(ball, '"width_ball"=%.2f\n',dimensions.w_b);
+    fprintf(ball, '"diameter_ball"=%.2f\n',dimensions.r_b*2);   % NEED TO FIX STANDARD BALL WIDTHS (INCREASE)
+    fprintf(ball, '"lip_ball"=%.2f\n',dimensions.r_b + 10);    % once t_lp fixed: fprintf(ball, '"lip_ball"=%.2f\n',dimensions.r_b + dimensions.t_lp);
+    fprintf(ball, '"shaft_bore"=%.2f\n',dimensions.D_s + 0.5);
+    fprintf(ball, '"key_slot"=%.2f\n',dimensions.w_k + 0.5);
+    fprintf(ball, '"shaft_extrude"=%.2f\n',dimensions.D_s + 15);
+    fprintf(ball, '"hydraulic_pin_bore"=%.2f\n',dimensions.d_pin + 0.5);
+    fclose(ball);
 
 end
 
@@ -427,6 +478,9 @@ function results = getResults(BW, H)
     results.L_cyl_max  = hydraulics.L_cyl_max_mm;
 
     displayTable = Main.displayResults(results);    % display results to GUI
+
+    dimensions = results;   % save results before converting to struct
+    Main.exportDimensions(dimensions); % export dimensions for SolidWorks
 
     % Generate all 6 gait-cycle plots in separate figure windows
     % GaitPlots.plotAll(gaitSeries, pressureSeries); TURNED OFF
