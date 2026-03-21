@@ -295,7 +295,9 @@ function results = getResults(BW, H)
     addpath(fullfile(rootDir, 'components'));
 
     % create log file
-    log = fopen(fullfile(rootDir, 'logs', 'AnalysisLogFile.txt'), 'w');
+    basePath = fileparts(mfilename('fullpath'));
+    log_filePath = fullfile(basePath,'..', 'Log', 'group12_LOG.txt');
+    log = fopen(log_filePath, 'w');
     if log == -1
         error('Could not create log file');
     end
@@ -438,6 +440,13 @@ function results = getResults(BW, H)
     fprintf(log, 'Pin diameter: %.2f mm\n', pin.diameter*1000);
     fprintf(log, 'Upper pin length: %.2f mm\n', pin.length_upper*1000);
     fprintf(log, 'Lower pin length: %.2f mm\n\n', pin.length_lower*1000);
+
+    % get lock dimensions - NOT YET DISPLAYED IN THE GUI
+    m_f = JointReactionForce.getMf(BW);
+    m_ll = JointReactionForce.getMl(BW);
+    d_f = JointReactionForce.getLl(H) + 0.5*JointReactionForce.getLf(H);
+    d_ll = 0.433*JointReactionForce.getLl(H);
+    lock_dimensions = Lock.LockDim(m_f, m_ll, d_f, d_ll, M_k, w_b);
 
     % get pyramid adapter safety factors
     FoS_yield_u = PyramidAdapter.getFoS_yield_u(F_kx, F_ky, Main.Sy_py);
