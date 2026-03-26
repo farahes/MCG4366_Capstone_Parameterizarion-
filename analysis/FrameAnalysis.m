@@ -119,7 +119,7 @@ end
 
 % Function for I (buckling)
 % The centroid and second moment of area are computed via the parallel-axis theorem
-function I = computeI(b, a)
+function I = computeI_buckling(b, a)
     cy = (a^2 - b.^2 + a.*b) ./ (4*a - 2*b);
 
     I1 = (1/12)*a.*b.^3;
@@ -139,7 +139,7 @@ end
 function legDim = getLegDimsBuckling(I_allowed)
     a = FrameAnalysis.a;
 
-    f = @(b) FrameAnalysis.computeI(b, a) - I_allowed;
+    f = @(b) FrameAnalysis.computeI_buckling(b, a) - I_allowed;
 
     % 0 < b < a
     b_vals = linspace(1e-6, a-1e-6, 1000);
@@ -256,6 +256,13 @@ function legDimensions = getLegDimensions(log, n, JRF, E, Sy, Ssy, d_isu, r_b)
     legDimensions.a = max([Dim1.a, Dim2.a, Dim3.a]);
     legDimensions.b = max([Dim1.b, Dim2.b, Dim3.b]);
 end
+
+%{
+function n = getSF_legdims(a, b)
+    if 
+
+end
+%}
 
 % -------- LIP --------
 

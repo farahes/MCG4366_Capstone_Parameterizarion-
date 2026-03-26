@@ -70,12 +70,12 @@ properties (Constant)
     % STANDARD SHAFT SIZES
     % arranged into a matrix where each row is a size (S/M/L)
     % each row is arranged like: [L_s D_s d_s]
-    Shaft_SZ = [0.06 0.022 0.018; 0.0615 0.024 0.020; 0.063 0.026 0.022]; % dimensions in [m]
+    Shaft_SZ = [0.06 0.022 0.018; 0.0615 0.024 0.020; 0.063 0.026 0.022; 0.063 0.029 0.025]; % dimensions in [m]
 
     % STANDARD BALL SIZES
     % arranged into a matrix where each row is a size (S/M/L)
     % each row is arranged like: [diameter width]
-    Ball_SZ = [0.08 0.06; 0.082 0.0615; 0.084 0.063]; % dimensions in [m]
+    Ball_SZ = [0.08 0.06; 0.082 0.0615; 0.084 0.063; 0.087 0.063]; % dimensions in [m]
 
     % STANDARD FRAME SIZES
     % TBC
@@ -364,7 +364,7 @@ function results = getResults(BW, H)
             JB = ShaftAnalysis.getJB(F_k, d_s);
             adjDiameter = ShaftAnalysis.getFinalShaftDimensions(JB);
         end
-
+   
         % check if diameter size is larger than the length size
         if (d_s > Main.Shaft_SZ(sz,3)) || (D_s > Main.Shaft_SZ(sz,2))
             fprintf(log, 'Shaft diameter and length sizes do not match.\n\n');
@@ -372,6 +372,7 @@ function results = getResults(BW, H)
         else
             break;
         end
+        
     end
 
     fprintf(log, 'Shaft diameter and length sizes converged!\n\n');
@@ -381,6 +382,7 @@ function results = getResults(BW, H)
     fprintf(log, 'd_s: %.2f mm\n', Main.Shaft_SZ(sz,3)*1000);
     fprintf(log, 'L_s: %.2f mm\n', Main.Shaft_SZ(sz,1)*1000);
     fprintf(log, 'l_s: %.2f mm\n\n', adjDiameter.l_s*1000);
+    
 
     % get key dimension
     w_k = ShaftAnalysis.getWk(Main.Shaft_SZ(sz,2));
