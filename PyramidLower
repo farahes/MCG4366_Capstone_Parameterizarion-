@@ -1,0 +1,83 @@
+BW = 70;      % kg (change as needed)
+H  = 1.75;    % m  (not used but kept)
+
+results = PyramidAdapterLower_calc(BW, H);
+
+%% ================= FUNCTION =================
+function results = PyramidAdapterLower_calc(BW, H)
+
+% ── 1. MATERIAL PROPERTIES ───────────────────
+sig_y = 170;             
+tau_y = 0.58 * sig_y;    
+n_sf  = 2;               
+
+% ── 2. GEOMETRY ─────────────────────────────
+t_plate  = 3.0;      
+d_bolt   = 5.5;      
+At_bolt  = 14.2;     
+n_bolts  = 4;
+
+b_pyr    = 12.23;    
+
+% ── 3. LOADING ──────────────────────────────
+g     = 9.81;
+F_v   = 3 * BW * g;              
+F_AP  = 0.2 * BW * g;            
+F_res = sqrt(F_v^2 + F_AP^2);    
+
+% ── 4. BOLT SHEAR ───────────────────────────
+F_per_bolt   = F_res / n_bolts;
+tau_bolt     = F_per_bolt / At_bolt;   
+tau_allow    = tau_y / n_sf;
+n_bolt_shear = tau_y / tau_bolt;
+
+% ── 5. BOLT BEARING ─────────────────────────
+A_bearing      = d_bolt * t_plate;
+sig_bearing    = F_per_bolt / A_bearing;
+sig_bear_allow = 1.5 * sig_y;
+n_bearing      = sig_bear_allow / sig_bearing;
+
+% ── 6. PYRAMID BOSS ─────────────────────────
+A_pyr     = b_pyr^2;
+sig_axial = F_v / A_pyr;
+tau_AP    = 1.5 * F_AP / A_pyr;
+
+% ── 7. VON MISES ────────────────────────────
+sig_e = sqrt(sig_axial^2 + 3 * tau_AP^2);
+n_vm  = sig_y / sig_e;
+
+% ── 8. RESULTS ──────────────────────────────
+results.n_bolt_shear = n_bolt_shear;
+results.n_bearing    = n_bearing;
+results.n_vm         = n_vm;
+
+results.all_pass = (n_bolt_shear >= n_sf) && ...
+                   (n_bearing    >= n_sf) && ...
+                   (n_vm         >= n_sf);
+
+% ── 9. DISPLAY ──────────────────────────────
+fprintf('\n====== PYRAMID ADAPTER RESULTS ======\n');
+fprintf('BW: %.1f kg\n', BW);
+
+fprintf('\n--- Bolt Shear ---\n');
+fprintf('n = %.2f %s\n', n_bolt_shear, passfail(n_bolt_shear >= n_sf));
+
+fprintf('\n--- Bearing ---\n');
+fprintf('n = %.2f %s\n', n_bearing, passfail(n_bearing >= n_sf));
+
+fprintf('\n--- Von Mises ---\n');
+fprintf('n = %.2f %s\n', n_vm, passfail(n_vm >= n_sf));
+
+fprintf('\nOVERALL: %s\n', passfail(results.all_pass));
+fprintf('====================================\n\n');
+
+end
+
+%% ================= HELPER =================
+function str = passfail(tf)
+if tf
+    str = 'PASS';
+else
+    str = 'FAIL';
+end
+end
