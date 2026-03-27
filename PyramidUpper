@@ -1,0 +1,101 @@
+BW = 70;      % kg (edit as needed)
+H  = 1.75;    % m
+
+results = PyramidAdapter_calc(BW, H);
+
+%% ================= FUNCTION =================
+function results = PyramidAdapter_calc(BW, H)
+
+%% ── 1. MATERIAL PROPERTIES ──────────────────
+sig_y = 170;            
+sig_u = 485;            
+tau_y = 0.58 * sig_y;  
+E     = 193;            
+n_sf  = 2;              
+
+%% ── 2. GEOMETRY ─────────────────────────────
+d_thread = 30;      
+p_thread = 1.50;    
+L_e      = 12;      
+n_threads = L_e / p_thread;
+
+b_pyr    = 12.23;   
+h_boss   = 9;    
+e        = 1.51;    
+
+%% ── 3. LOADING ──────────────────────────────
+g    = 9.81;                        
+
+F_v  = 3 * BW * g;                
+F_AP = 0.2 * BW * g;              
+F_res = sqrt(F_v^2 + F_AP^2);      
+
+%% ── 4. THREAD STRIPPING ─────────────────────
+A_per_thread  = pi * d_thread * 0.75 * p_thread;   
+A_shear_total = n_threads * A_per_thread;          
+
+tau_s = F_res / A_shear_total;     
+n_thread = tau_y / tau_s;
+
+%% ── 5. PYRAMID BOSS: AXIAL ─────────────────
+A_pyr     = b_pyr^2;                
+sig_axial = F_v / A_pyr;           
+
+%% ── 6. BENDING ─────────────────────────────
+M_bend   = F_v * e;                
+I_pyr    = (b_pyr^4) / 12;        
+y_pyr    = b_pyr / 2;             
+
+sig_bend = M_bend * y_pyr / I_pyr; 
+
+%% ── 7. SHEAR ───────────────────────────────
+tau_AP = 1.5 * F_AP / A_pyr;      
+
+%% ── 8. VON MISES ───────────────────────────
+sig_total = sig_axial + sig_bend;  
+sig_e     = sqrt(sig_total^2 + 3 * tau_AP^2);  
+
+n_vm = sig_y / sig_e;
+
+%% ── 9. ALLOWABLES ──────────────────────────
+tau_allow = tau_y / n_sf;          
+sig_allow = sig_y / n_sf;         
+
+%% ── 10. RESULTS ────────────────────────────
+results.n_thread = n_thread;
+results.n_vm     = n_vm;
+
+results.thread_pass = n_thread >= n_sf;
+results.vm_pass     = n_vm >= n_sf;
+
+results.all_pass = results.thread_pass && results.vm_pass;
+
+if results.all_pass
+    results.adapter_material = 'AISI 316L Stainless Steel - PASS';
+else
+    results.adapter_material = 'AISI 316L Stainless Steel - FAIL';
+end
+
+%% ── 11. DISPLAY ────────────────────────────
+fprintf('\n====== UPPER PYRAMID ADAPTER ======\n');
+fprintf('BW: %.1f kg\n', BW);
+
+fprintf('\n--- Thread Stripping ---\n');
+fprintf('n = %.2f %s\n', n_thread, pass_fail(results.thread_pass));
+
+fprintf('\n--- Von Mises ---\n');
+fprintf('n = %.2f %s\n', n_vm, pass_fail(results.vm_pass));
+
+fprintf('\nOVERALL: %s\n', pass_fail(results.all_pass));
+fprintf('===================================\n\n');
+
+end
+
+%% ================= HELPER =================
+function str = pass_fail(tf)
+if tf
+    str = 'PASS';
+else
+    str = 'FAIL';
+end
+end
