@@ -155,7 +155,6 @@ function legDim = getLegDimsBuckling(I_allowed)
     % Solve in that small interval
     b_sol = fzero(f, [b_vals(idx), b_vals(idx+1)]);
 
-    legDim.a = a;
     legDim.b = double(b_sol);
 end
     
@@ -163,7 +162,6 @@ end
 function legDim = getLegDimsShear(JRF, tau_allowed)
     a = FrameAnalysis.a;
     b = a - sqrt(a^2 - (3/8)*(JRF/tau_allowed));
-    legDim.a = a;
     legDim.b = b;
 end
 
@@ -214,7 +212,6 @@ function legDim = getLegDimsBending(I_allowed, W_su)
     % Solve in that small interval
     b_sol = fzero(f, [b_vals(idx), b_vals(idx+1)]);
 
-    legDim.a = a;
     legDim.b = double(b_sol);
 end
 
@@ -222,6 +219,9 @@ end
 function legDimensions = getLegDimensions(log, n, JRF, E, Sy, Ssy, d_isu, r_b)
 
     fprintf(log, 'Limiting Leg Dimensions:\n');
+
+    legDimensions.a = FrameAnalysis.a;
+    fprintf(log, 'For a leg width, a = %.2f mm\n', legDimensions.a*1000);
     % Calculate geometry
     H_su = FrameAnalysis.getHsu(d_isu, r_b);
     W_su = FrameAnalysis.wsufunction(d_isu, H_su);
@@ -233,15 +233,13 @@ function legDimensions = getLegDimensions(log, n, JRF, E, Sy, Ssy, d_isu, r_b)
     Dim1 = FrameAnalysis.getLegDimsBuckling(I_allowed1);
     fprintf(log, 'Pcr: %.2f N\n', Pcr1);
     fprintf(log, 'I_allowed: %.2f mm^4\n', I_allowed1*1000000000000);
-    fprintf(log, 'a: %.2f mm\n', Dim1.a*1000);
-    fprintf(log, 'b: %.2f mm\n', Dim1.b*1000);
+    fprintf(log, 'b: %.6f mm\n', Dim1.b*1000);
     % Shear
     fprintf(log, 'Shear\n');
     tau_allowed2 = FrameAnalysis.getTau(Ssy, n);
     Dim2 = FrameAnalysis.getLegDimsShear(JRF, tau_allowed2);
     fprintf(log, 'tau_allowed: %.2f Pa\n', tau_allowed2);
-    fprintf(log, 'a: %.2f mm\n', Dim2.a*1000);
-    fprintf(log, 'b: %.2f mm\n', Dim2.b*1000);
+    fprintf(log, 'b: %.6f mm\n', Dim2.b*1000);
     % Bending
     fprintf(log, 'Bending\n');
     M_max3 = FrameAnalysis.getMmaxBending(JRF);
@@ -250,19 +248,13 @@ function legDimensions = getLegDimensions(log, n, JRF, E, Sy, Ssy, d_isu, r_b)
     Dim3 = FrameAnalysis.getLegDimsBending(I_allowed3, W_su);
     fprintf(log, 'sigma_allowed: %.2f Pa\n', sigma_allowed3);
     fprintf(log, 'I_allowed: %.2f mm^4\n', I_allowed3*1000000000000);
-    fprintf(log, 'a: %.2f mm\n', Dim3.a*1000);
-    fprintf(log, 'b: %.2f mm\n', Dim3.b*1000);
+    fprintf(log, 'b: %.6f mm\n\n', Dim3.b*1000);
 
-    legDimensions.a = max([Dim1.a, Dim2.a, Dim3.a]);
-    legDimensions.b = max([Dim1.b, Dim2.b, Dim3.b]);
+    limiting_b = max([Dim1.b, Dim2.b, Dim3.b]);
+    fprintf(log, 'Final limiting b: %.6f mm\n', limiting_b*1000);
+
+    legDimensions.b = limiting_b;
 end
-
-%{
-function n = getSF_legdims(a, b)
-    if 
-
-end
-%}
 
 % -------- LIP --------
 
@@ -277,6 +269,18 @@ end
 % Minimum lip thickness from compressive stress:  t = F_lp / (sigma_allowed * w_lp)
 function t_lp = getLipThicknessComp(F_lp, sigma_allowed, w_lp)
     t_lp = F_lp/(sigma_allowed*w_lp);
+end
+
+% -------- FINAL FRAME THICKNESS --------
+% To simplify the mold geometry and avoid any extremely thin components
+% (difficult to demold), the same thickness for the supports, legs, and
+% lip will be used
+
+function frame_thickness = t_frame(log, t_su,b, t_lp)
+    limiting_frame_thickness = max([t_su,b, t_lp]);
+    frame_thickness.t = ceil(limiting_frame_thickness);   % round up to the nearest frame thickness
+
+    fprintf(log, 'Final frame thickness: t_frame = %.2f mm\n\n', frame_thickness.t*1000);
 end
 
 end
