@@ -44,9 +44,8 @@ properties (Constant)
     Sy = 276e6;   % [Pa], from Juvinall
 
     % Material properties of the spring
-    G_spring = 69e9;   % shear modulus [Pa]
-    C_index = 8;        % spring index
-    N_a     = 6;        % active coils
+    Su = 2200e6;    % [Pa], from Juvinall for ASTM A313 for 1<d<3 mm
+    G_spring = 73e6;    % [Pa], from Juvinall stainless steel
 
     % Safety factor
     n = 4;  % TBC but greater than 2 ideally
@@ -84,80 +83,19 @@ methods (Static)
         M_leg = m_LL*d_LL + m_f*d_f;
     end
 
+    function F_pre = F_preload(k, preload_deflection)
+        F_pre = k*preload_deflection;
+    end
+
 % =========================================================
 % SPRING STIFFNESS
 % =========================================================
 
     % calculate the spring stiffness required to acheive easy
-    % engagement/disengagement
-    function k = k()
-        k = Lock.F_T()/(Lock.h_hump + Lock.y_pre);
+    % engagement/disengagement [N/m]
+    function k = k(F_T)
+        k = F_T/(Lock.h_hump + Lock.y_pre);
     end
-
-% =========================================================
-%  SPRING GEOMETRY - INCOMPLETE BUT DOES NOT AFFECT ANYTHING ELSE
-% =========================================================
-
-    function N_total = N_total()
-        N_total = Lock.N_a + 2;
-    end
-
-    % --- Wire diameter (correct equation) ---
-    function d_w = d_w(k)
-        d_w = ((8 * k * Lock.C_index^3 * Lock.N_a) / Lock.G_spring)^(1/4);
-    end
-
-    % --- Mean coil diameter ---
-    function D_coil = D_coil(d_w)
-        D_coil = Lock.C_index * d_w;
-    end
-
-    % --- Verify spring rate ---
-    function k_verify = verifyK(d_w)
-        k_verify = (Lock.G_spring * d_w^4) / (8 * Lock.D_coil(d_w)^3 * Lock.N_a);
-    end
-
-    % --- Forces ---
-    function F_preload = F_preload(k)
-        F_preload = k * Lock.delta_pre;
-    end
-
-    function F_max = F_max(k)
-        F_max = k * (delta_pre + delta);
-    end
-
-    % --- Wahl correction factor ---
-    function K_wahl = K_wahl()
-        K_wahl = (4*Lock.C_index - 1)/(4*Lock.C_index - 4) + 0.615/Lock.C_index;
-    end
-    
-    % --- Spring stress ---
-    function tau_spring = tau_spring(k)
-        tau_spring = Lock.K_wahl() * (8 * Lock.F_max(k) * Lock.D_coil) / (pi * Lock.d_w(k)^3);
-    end
-    
-    % --- Safety factor ---
-    function n_spring = n_spring(k)
-        n_spring = Lock.Ssy / Lock.tau_spring(k);
-    end
-    
-    % --- Solid length ---
-    function l_solid = l_solid()
-        l_solid = Lock.N_total() * Lock.d_w(k);
-    end
-
-%{
-OLD DISPLAY FUNCTIONS
-fprintf('=== SPRING GEOMETRY ===\n');
-fprintf('Wire diameter: %.2f mm\n',d_w);
-fprintf('Mean coil diameter: %.2f mm\n',D_coil);
-fprintf('Spring rate verified: %.2f N/mm\n',k_verify);
-fprintf('Solid length: %.2f mm\n',L_solid);
-fprintf('Preload force: %.2f N\n',F_preload);
-fprintf('Max spring force: %.2f N\n',F_max);
-fprintf('Spring stress: %.2f MPa\n',tau_spring);
-fprintf('Spring safety factor: %.2f\n\n',n_spring);
-%}
 
 % =========================================================
 % KEYS
@@ -196,32 +134,135 @@ fprintf('Spring safety factor: %.2f\n\n',n_spring);
     end
 
 % =========================================================
-%  LATCH HERTZ CONTACT STRESS
+%  SPRING GEOMETRY
 % =========================================================
 
-% TBD... we decided to maybe not to proceed with this analysis
+function C = C(D,d)
+    C = D/d;
+end
+
+function Ks = Ks(C)
+    Ks = 1 + (0.5/C);
+end
+
+function Kw = Kw(C)
+    Kw = (4*C-1)/(4*C-4) + (0.615/C);
+end
+
+% number of active coils
+function N = N(d, k, D, G)
+    N = ceil(G*d^4/(8*k*D^3));
+end
+
+function tau = tau(F, D, d, Kw)
+    tau = 8*F*D*Kw/(pi*d^3);
+end
 
 % =========================================================
 %  MAIN LOCK DIMENSIONS
 % =========================================================
 
-    function LockDim = LockDim(m_f, m_ll, d_f, d_ll, M_k, r_ball)
+    function LockDim = LockDim(log, m_f, m_ll, d_f, d_ll, M_k, r_ball)
 
-        LockDim.k = Lock.k();
+        fprintf(log, 'Minimum set safety factor: %d\n\n', Lock.n);
+        fprintf(log, 'Lock dimensions:\n');
+       
+        % Lock dimensions
+        T = Lock.M_T;
+        fprintf(log, 'Torque to engage/disengage lock: %.3f Nm\n', T);
+        F_T = Lock.F_T();
+        LockDim.k = Lock.k(F_T);
+        fprintf(log, 'Spring constant: %.2f N/m\n', LockDim.k);
 
         M = max(M_k,Lock.M_leg(m_f, m_ll, d_f, d_ll));
         F_C = Lock.F_C(M, r_ball);
+        fprintf(log, 'Maximum force on the latch: %.2f N\n', F_C);
         tau_allowable = Lock.Ssy()/Lock.n;
         sigma_allowable = Lock.Sy/Lock.n;
+        fprintf(log, 'Maximum allowable shear stress: %.2f Pa\n', tau_allowable);
+        fprintf(log, 'Maximum allowable bending stress: %.2f Pa\n', sigma_allowable);
 
         LockDim.t_latch = Lock.t_latch;
+        fprintf(log, 'Set latch thickness: %.2f mm\n', LockDim.t_latch*1000);
         LockDim.w_key = Lock.w_key(F_C,LockDim.k,Lock.h_hump + Lock.y_pre,tau_allowable);
+        fprintf(log, 'Minimum width of pin keys: %.2f mm\n', LockDim.w_key*1000);
 
         d_pin_shear = Lock.d_pin_shear(F_C, tau_allowable);
         d_pin_torsion = Lock.d_pin_torsion(tau_allowable);
         d_pin_bending = Lock.d_pin_bending(F_C, sigma_allowable);
         LockDim.d_pin = max([d_pin_shear,d_pin_torsion,d_pin_bending]);
-            
+        fprintf(log, 'Limiting pin diameter due to shear: %.2f mm\n', d_pin_shear*1000);
+        fprintf(log, 'Limiting pin diameter due to torsion: %.2f mm\n', d_pin_torsion*1000);
+        fprintf(log, 'Limiting pin diameter due to bending: %.2f mm\n', d_pin_bending*1000);
+        fprintf(log, 'Pin diameter: %.2f mm\n', LockDim.d_pin*1000);
+        
+
+        % Spring dimensions
+        fprintf(log, '\nSpring dimensions:\n');
+        D = LockDim.d_pin;
+        d = 0.001;  % to start, set d = 1mm
+        while (true)
+            C = Lock.C(D,d);
+            fprintf(log, 'D (mean spring diameter): %.2f mm\n', D*1000);
+            fprintf(log, 'd (wire diameter): %.2f mm\n', d*1000);
+            fprintf(log, 'C:    %.2f\n', C);
+   
+            if (C >= 5 && C <= 9)
+                fprintf(log, 'C within acceptable bounds of 5-9\n');
+                break;
+            elseif (C < 5)
+                fprintf(log, 'C is outside of acceptable bound, C < 5\n');
+                D = D + 0.001;  % increase D
+            elseif (C > 9)
+                fprintf(log, 'C is outside of acceptable bound, C > 9\n');
+                d = d + 0.001;  % increase d
+            end
+        end
+
+        Ks = Lock.Ks(C);
+        Kw = Lock.Kw(C);
+        N = Lock.N(d, LockDim.k, D, Lock.G_spring);
+        Nt = N + 2;
+        fprintf(log, 'Ks: %.2f\n', Ks);
+        fprintf(log, 'Kw: %.2f\n', Kw);
+        fprintf(log, 'Number of active coils, N: %.0f\n', N);
+        fprintf(log, 'Total number of coils, N_t: %.0f\n', Nt);
+
+        F_min = Lock.F_preload(LockDim.k, Lock.y_pre);
+        F_max = Lock.F_T();
+
+        tau_min = Lock.tau(F_min, D, d, Kw);
+        tau_max = Lock.tau(F_max, D, d, Kw);
+
+        tau_m = (tau_max + tau_min)/2;
+        tau_a = (tau_max - tau_min)/2;
+
+        % Static load yield
+        fprintf(log, 'Static loading condition:\n');
+        tau_s_allowed = 0.45*Lock.Su;
+        tau_s = 8*F_max*C*Ks/(pi*d^2);
+        static_condition_met = tau_s < tau_s_allowed;
+        fprintf(log, 'Allowable static stress: %.2f Pa\n', tau_s_allowed);
+        fprintf(log, 'Calculated static stress: %.2f Pa\n', tau_s);
+        if (static_condition_met)
+            fprintf(log, 'Static condition is met!\n');
+        else
+            fprintf(log, 'Static condition has not been met.\n');
+        end
+
+        fprintf(log, '\nSpring safety factors:\n');
+
+        % Modified Goodman for spring
+        Ssu = 0.8*Lock.Su;
+        Ssn = 0.31*Lock.Su;
+        n_goodman = 1/(tau_a/Ssn + tau_m/Ssu);
+        fprintf(log, 'Goodman, n = %.2f\n', n_goodman);
+
+        % Langer (oscillating load)
+        Ssy = 0.53*Lock.Su;
+        n_langer = 1/(tau_a/Ssy + tau_m/Ssy);
+        fprintf(log, 'Langer, n = %.2f\n\n', n_langer);
+
     end
 
 end
