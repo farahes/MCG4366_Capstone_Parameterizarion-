@@ -5,7 +5,6 @@
 % Design analysis:
 % - Static shear safety factor
 % - Static bending safety factor
-% - Fatigue safety factor (Modified Goodman) (NOT IMPLEMENTED YET)
 % =========================================================
 
 classdef HydrPin
@@ -69,12 +68,12 @@ methods (Static)
     %              centre (length b_upper), with overhangs a_upper on each side.
     %   Lower pin: shorter, braced by two frame pads (a_lower fixed conservatively at 7 mm).
     %
-    % The force F is multiplied by 3x to cover dynamic loads (running, jumping).
+    % The force F is multiplied by 1.5x to cover higher load cases.
     % Pin diameter starts at 10 mm and is incremented by 1 mm until all FoS >= n.
     function PinDim = PinDim(M_k, w_ball, r_ball, d_hydraulic)
 
-        % Convert knee moment to pin shear force; 3x dynamic load factor
-        F = HydrPin.F_max(M_k, r_ball) * 3;
+        % Convert knee moment to pin shear force; 1.5x dynamic load factor
+        F = HydrPin.F_max(M_k, r_ball)*1.5;
 
         % -------- UPPER PIN DIMENSIONS --------
         % the upper pin will be the the length of the ball thickness
