@@ -1,6 +1,13 @@
+% =========================================================
+% FRAME ANALYSIS
+% =========================================================
+
 %{
 
-Subscript Convention
+% =========================================================
+% SUBSCRIPT CONVENTION
+% =========================================================
+
 s : shaft
 su : supports
 fr: frame
@@ -31,7 +38,9 @@ function sigma_allowed = getSigma(Sy, n)
     sigma_allowed = Sy/n;
 end
 
-% -------- SUPPORTS --------
+% =========================================================
+% SUPPORTS
+% =========================================================
 
 % BUCKLING
 function Pcr = getPcrsu(JRF, n)
@@ -106,7 +115,9 @@ function t_su = getSupportThickness(log, n, JRF, E, Ssy, Sy, d_isu, r_b)
     t_su = max([t1, t2, t3, t4]);
 end
 
-% -------- LEGS --------
+% =========================================================
+% LEGS
+% =========================================================
 
 % BUCKLING
 function Pcr = getPcrfr(JRF, n)
@@ -248,7 +259,7 @@ function legDimensions = getLegDimensions(log, n, JRF, E, Sy, Ssy, d_isu, r_b)
     Dim3 = FrameAnalysis.getLegDimsBending(I_allowed3, W_su);
     fprintf(log, 'sigma_allowed: %.2f Pa\n', sigma_allowed3);
     fprintf(log, 'I_allowed: %.2f mm^4\n', I_allowed3*1000000000000);
-    fprintf(log, 'b: %.6f mm\n\n', Dim3.b*1000);
+    fprintf(log, 'b: %.6f mm\n', Dim3.b*1000);
 
     limiting_b = max([Dim1.b, Dim2.b, Dim3.b]);
     fprintf(log, 'Final limiting b: %.6f mm\n', limiting_b*1000);
@@ -256,7 +267,9 @@ function legDimensions = getLegDimensions(log, n, JRF, E, Sy, Ssy, d_isu, r_b)
     legDimensions.b = limiting_b;
 end
 
-% -------- LIP --------
+% =========================================================
+% LIP
+% =========================================================
 
 % Equivalent force the lip must resist in the worst case (heel strike).
 % The knee moment creates a force couple at the ball radius (M_k / r_b),
@@ -267,20 +280,27 @@ end
 
 % COMPRESSION
 % Minimum lip thickness from compressive stress:  t = F_lp / (sigma_allowed * w_lp)
-function t_lp = getLipThicknessComp(F_lp, sigma_allowed, w_lp)
+function t_lp = getLipThicknessComp(log, F_lp, sigma_allowed, w_lp)
     t_lp = F_lp/(sigma_allowed*w_lp);
+
+    fprintf(log, '\nLip Thickness:\n');
+    fprintf(log, 'F_lp: %.2f N\n', F_lp);
+    fprintf(log, 't_lp: %.2f mm\n\n', t_lp*1000);
 end
 
-% -------- FINAL FRAME THICKNESS --------
+% =========================================================
+% FINAL FRAME THICKNESS
+% =========================================================
+
 % To simplify the mold geometry and avoid any extremely thin components
 % (difficult to demold), the same thickness for the supports, legs, and
 % lip will be used
 
-function frame_thickness = t_frame(log, t_su,b, t_lp)
-    limiting_frame_thickness = max([t_su,b, t_lp]);
-    frame_thickness.t = ceil(limiting_frame_thickness);   % round up to the nearest frame thickness
+function frame_thickness = t_frame(log, t_su, b, t_lp)
+    limiting_frame_thickness = max([t_su, b, t_lp]);
+    frame_thickness = ceil(limiting_frame_thickness*1000)/1000;   % round up to the nearest frame thickness
 
-    fprintf(log, 'Final frame thickness: t_frame = %.2f mm\n\n', frame_thickness.t*1000);
+    fprintf(log, 'Final frame thickness: t_frame = %.2f mm\n\n', frame_thickness*1000);
 end
 
 end

@@ -30,6 +30,8 @@ function journalDimensions = getJournalBearingDimensions(JRF,D_shaft)
     houseID = jbTable.(houseIDCol);
     lngthCol = matlab.lang.makeValidName('Lg., mm');
     lngth = jbTable.(lngthCol);
+    flangetCol = matlab.lang.makeValidName('Flange Thk., mm');
+    flanget = jbTable.(flangetCol);
     radialLoadCol = matlab.lang.makeValidName('Dynamic Radial Load at 120rpm (lb)');
     radialLoad = jbTable.(radialLoadCol);
     partCol = matlab.lang.makeValidName('Part No.');
@@ -42,6 +44,7 @@ function journalDimensions = getJournalBearingDimensions(JRF,D_shaft)
                 journalDimensions.housingID = houseID(i)/1000;
                 journalDimensions.shaftD = shaftD(i)/1000;
                 journalDimensions.lngth = lngth(i)/1000;
+                journalDimensions.ft = flanget(i)/1000;
                 journalDimensions.prt = part(i);
                 return
             end

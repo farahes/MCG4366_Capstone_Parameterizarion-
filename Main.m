@@ -1,3 +1,6 @@
+% =========================================================
+% MAIN
+% =========================================================
 % Main is the top-level entry point for the prosthetic knee parameterization tool.
 % Call Main.getResults(BW, H) with patient body weight [kg] and height [m] to run
 % the full analysis pipeline and receive a results table for the GUI.
@@ -9,11 +12,15 @@
 %   4. Frame support & leg cross-section   — FrameAnalysis (buckling, shear, bending)
 %   5. Needle valve sizing & flow plot     — HydraulicNeedleValve
 %   6. Hydraulic pin diameter              — HydrPin (static bending & shear)
-%   7. Pyramid adapter safety factors      — PyramidAdapter (von Mises)
+%   7. Locking mechanism analysis          — Lock (stresses and spring)
+%   8. Pyramid adapter safety factors      — PyramidAdapter (von Mises)
 
 %{
 
-Subscript Convention
+% =========================================================
+% SUBSCRIPT CONVENTION
+% =========================================================
+
 f : foot
 l : leg
 a : ankle
@@ -63,7 +70,9 @@ properties (Constant)
     % Stainless Steel (none specified, assume AISI 316L )
     Sy_py = 276; % [MPa] yield strength
 
-% --------SIZING CHART--------
+% =========================================================
+% SIZING CHART
+% =========================================================
 % Sizing is implemented to reduce cost and lead time to manufacture custom
 % sizes for each patient
 
@@ -75,10 +84,7 @@ properties (Constant)
     % STANDARD BALL SIZES
     % arranged into a matrix where each row is a size (S/M/L)
     % each row is arranged like: [diameter width]
-    Ball_SZ = [0.08 0.06; 0.082 0.0615; 0.084 0.063; 0.087 0.063]; % dimensions in [m]
-
-    % STANDARD FRAME SIZES
-    % TBC
+    Ball_SZ = [0.08 0.06; 0.082 0.0615; 0.084 0.063; 0.095 0.063]; % dimensions in [m]
 
 end
     
@@ -96,7 +102,9 @@ function G = getG(E, nu)
     G = E/(2*(1+nu));
 end
 
-% --------DISPLAY FUNCTIONS--------
+% =========================================================
+% DISPLAY FUNCTION
+% =========================================================
 
 % Create array of results to display to GUI
 function displayTable = displayResults(results)
@@ -235,6 +243,10 @@ function displayTable = displayResults(results)
 
 end
 
+% =========================================================
+% SOLIDWORKS INTEGRATION
+% =========================================================
+
 % export results to text files for SolidWorks integration
 function exportDimensions(dimensions)
     
@@ -269,18 +281,110 @@ function exportDimensions(dimensions)
     ball_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'ball.txt');
     ball = fopen(ball_filePath, 'w');
     if ball == -1
-        error('Could not create key.txt');
+        error('Could not create ball.txt');
     end
 
     fprintf(ball, '"width_ball"=%.2f\n',dimensions.w_b);
-    fprintf(ball, '"diameter_ball"=%.2f\n',dimensions.r_b*2);   % NEED TO FIX STANDARD BALL WIDTHS (INCREASE)
-    fprintf(ball, '"lip_ball"=%.2f\n',dimensions.r_b + 10);    % once t_lp fixed: fprintf(ball, '"lip_ball"=%.2f\n',dimensions.r_b + dimensions.t_lp);
+    fprintf(ball, '"diameter_ball"=%.2f\n',dimensions.r_b*2);
+    fprintf(ball, '"lip_ball"=%.2f\n',dimensions.r_b + dimensions.t_lp);
     fprintf(ball, '"shaft_bore"=%.2f\n',dimensions.D_s + 0.5);
     fprintf(ball, '"key_slot"=%.2f\n',dimensions.w_k + 0.5);
     fprintf(ball, '"shaft_extrude"=%.2f\n',dimensions.D_s + 15);
     fprintf(ball, '"hydraulic_pin_bore"=%.2f\n',dimensions.d_pin + 0.5);
     fclose(ball);
 
+    %-------- FRAME DIMENSIONS --------
+    frame_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'frame.txt');
+    frame = fopen(frame_filePath, 'w');
+    if frame == -1
+        error('Could not create frame.txt');
+    end
+
+    fprintf(frame, '"outer_diameter"=%.2f\n',2*dimensions.r_b + 2*dimensions.t_lp + 0.5);
+    fprintf(frame, '"outer_width"=%.2f\n',dimensions.w_b + 2*dimensions.t_su + 2*1.00 + 0.5);
+    fprintf(frame, '"leg_length"=%.2f\n',dimensions.L_fr);
+    fprintf(frame, '"inner_diameter"=%.2f\n',2*dimensions.r_b + 0.5);
+    fprintf(frame, '"support_thickness"=%.2f\n',dimensions.t_su);
+    fprintf(frame, '"shaft_extrude_diameter"=%.2f\n',dimensions.JBod + 15);
+    fprintf(frame, '"shaft_extrude_thickness"=%.2f\n',dimensions.JBl - dimensions.JBft - dimensions.t_su);
+    fprintf(frame, '"shaft_bore"=%.2f\n',dimensions.JBod);
+    fprintf(frame, '"support_diameter"=%.2f\n',dimensions.JBod/2 + 15);
+    fprintf(frame, '"leg_thickness"=%.2f\n',dimensions.b);
+    fprintf(frame, '"leg_width"=%.2f\n',dimensions.a);
+    fprintf(frame, '"hydraulic_pin_bore"=%.2f\n',dimensions.d_pin);
+    fclose(frame);
+
+    %{
+    %-------- HYDRAULIC PIN DIMENSIONS - TOP --------
+    hydrpin_top_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'hydrpin.txt');
+    hydrpin = fopen(hydrpin_filePath, 'w');
+    if hydrpin == -1
+        error('Could not create hydrpin.txt');
+    end
+
+    fprintf(hydrpin, '"diameter"=%.2f\n',);
+    fprintf(hydrpin, '"length"=%.2f\n',);
+    fprintf(hydrpin, '"handle_keys"=%.2f\n',);
+    fprintf(hydrpin, '"latch_keys_width"=%.2f\n',);
+    fclose(hydrpin);
+
+    %-------- HYDRAULIC PIN DIMENSIONS - BOTTOM --------
+    hydrpin_top_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'hydrpin.txt');
+    hydrpin = fopen(hydrpin_filePath, 'w');
+    if hydrpin == -1
+        error('Could not create hydrpin.txt');
+    end
+
+    fprintf(hydrpin, '"diameter"=%.2f\n',);
+    fprintf(hydrpin, '"length"=%.2f\n',);
+    fclose(hydrpin);
+
+    %-------- LOCK DIMENSIONS - PIN --------
+    lock_pin_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'lock_pin.txt');
+    lock_pin = fopen(lock_pin_filePath, 'w');
+    if lock_pin == -1
+        error('Could not create lock_pin.txt');
+    end
+
+    fprintf(lock_pin, '"diameter"=%.2f\n',);
+    fprintf(lock_pin, '"length"=%.2f\n',);
+    fprintf(lock_pin, '"handle_keys"=%.2f\n',);
+    fprintf(lock_pin, '"latch_keys_width"=%.2f\n',);
+    fclose(lock_pin);
+
+    %-------- LOCK DIMENSIONS - HANDLE --------
+    lock_handle_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'lock_handle.txt');
+    lock_handle = fopen(lock_handle_filePath, 'w');
+    if lock_handle == -1
+        error('Could not create lock_handle.txt');
+    end
+
+    fprintf(lock_handle, '"length"=%.2f\n',);
+    fprintf(lock_handle, '"thickness"=%.2f\n',);
+    fprintf(lock_handle, '"bore_diameter"=%.2f\n',);
+    fprintf(lock_handle, '"handle_keys"=%.2f\n',);
+    fclose(lock_handle);
+
+    %-------- LOCK DIMENSIONS - LATCH --------
+    lock_latch_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'lock_latch.txt');
+    lock_latch = fopen(lock_latch_filePath, 'w');
+    if lock_latch == -1
+        error('Could not create lock_latch.txt');
+    end
+
+    fprintf(lock_latch, '"length"=%.2f\n',);
+    fprintf(lock_latch, '"width"=%.2f\n',);
+    fprintf(lock_latch, '"thickness"=%.2f\n',);
+    fprintf(lock_latch, '"slot_diameter"=%.2f\n',);
+    fprintf(lock_latch, '"slot_length"=%.2f\n',);
+    fprintf(lock_latch, '"latch_keys_width"=%.2f\n',);
+    fprintf(lock_latch, '"latch_keys_length"=%.2f\n',);
+    fprintf(lock_latch, '"spring_cavity_diameter"=%.2f\n',);
+    fclose(lock_latch);
+
+    %-------- LOCK DIMENSIONS - SPRING --------
+
+    %}
 end
 
 % /***************************************/
@@ -406,10 +510,10 @@ function results = getResults(BW, H)
 
     % get lip thickness
     F_lp = FrameAnalysis.getFlp(M_k, F_k, r_b);
-    t_lp = FrameAnalysis.getLipThicknessComp(F_lp, FrameAnalysis.getSigma(Main.Sy_fr, Main.n_frame), w_b);
-    fprintf(log, '\nLip Thickness:\n');
-    fprintf(log, 'F_lp: %.2f N\n', F_lp);
-    fprintf(log, 't_lp: %.2f mm\n\n', t_lp*1000);
+    t_lp = FrameAnalysis.getLipThicknessComp(log, F_lp, FrameAnalysis.getSigma(Main.Sy_fr, Main.n_frame), w_b);
+
+    % get final frame thickness
+    t_frame = FrameAnalysis.t_frame(log, t_s, legDimensions.b, t_lp);
 
     % get needle valve calculations and plot
     valve = HydraulicNeedleValve.getValveSize();
@@ -444,13 +548,15 @@ function results = getResults(BW, H)
     fprintf(log, 'Lower pin length: %.2f mm\n\n', pin.length_lower*1000);
 
     % get lock dimensions - NOT YET DISPLAYED IN THE GUI
+    fprintf(log, '-------- LOCK ANALYSIS --------:\n\n');
     m_f = JointReactionForce.getMf(BW);
     m_ll = JointReactionForce.getMl(BW);
     d_f = JointReactionForce.getLl(H) + 0.5*JointReactionForce.getLf(H);
     d_ll = 0.433*JointReactionForce.getLl(H);
-    lock_dimensions = Lock.LockDim(m_f, m_ll, d_f, d_ll, M_k, w_b);
+    lock_dimensions = Lock.LockDim(log, m_f, m_ll, d_f, d_ll, M_k, w_b);
 
     % get pyramid adapter safety factors
+    fprintf(log, '-------- PYRAMID ADAPTER ANALYSIS --------:\n\n');
     FoS_yield_u = PyramidAdapter.getFoS_yield_u(F_kx, F_ky, Main.Sy_py);
     FoS_yield_b = PyramidAdapter.getFoS_yield_b(F_kx, F_ky, Main.Sy_py);
 
@@ -459,18 +565,19 @@ function results = getResults(BW, H)
     results.L_s = Main.Shaft_SZ(sz,1)*1000;
     results.l_s = adjDiameter.l_s*1000;
     results.JBid = JB.id*1000;
-    results. JBod = JB.od*1000;
+    results.JBod = JB.od*1000;
     results.JBl = JB.l*1000;
+    results.JBft = JB.ft*1000;
     results.JBpart = JB.part{1};
     results.w_k = w_k*1000;
     results.r_b = r_b*1000;
     results.w_b = w_b*1000;
     results.d_isu = JB.od*1000;
-    results.t_su = t_s*1000;
+    results.t_su = t_frame*1000;
     results.L_fr = FrameAnalysis.L_fr*1000;
     results.a = legDimensions.a*1000;
-    results.b = legDimensions.b*1000;
-    results.t_lp = t_lp*1000;
+    results.b = t_frame*1000;
+    results.t_lp = t_frame*1000;
     results.d_valve = valve.d_best_mm;
     results.Q = valve.Q_Lmin;
     results.Cv = valve.Cv;

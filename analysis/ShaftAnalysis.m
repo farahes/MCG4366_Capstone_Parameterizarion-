@@ -164,6 +164,7 @@ function JB = getJB(JRF, d_s)
     JB.id = jbDimensions.shaftD;    % diameter of the shaft
     JB.od = jbDimensions.housingID; % inner diameter of the housing
     JB.l = jbDimensions.lngth;  % length of the journal bearing
+    JB.ft = jbDimensions.ft;  % thickness of the flange
     JB.part = jbDimensions.prt; % part number from McMasterCarr
 end
 
