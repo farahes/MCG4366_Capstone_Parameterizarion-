@@ -77,12 +77,18 @@ properties (Constant)
 % sizes for each patient
 
     % STANDARD SHAFT SIZES
-    % arranged into a matrix where each row is a size (S/M/L)
+    % arranged into a matrix where each row is a size (S/M/L/XL)
     % each row is arranged like: [L_s D_s d_s]
     Shaft_SZ = [0.06 0.022 0.018; 0.0615 0.024 0.020; 0.063 0.026 0.022; 0.063 0.029 0.025]; % dimensions in [m]
 
+    % RETAINGING RING LOCATION
+    % from McMaster Carr catalogue for external retaining rings
+    % arranged into a matrix where each row is a size (S/M/L/XL)
+    % each row is arranged like: [groove_d groove_w]
+    Ring_SZ = [0.017 0.0013; 0.019 0.0013; 0.021 0.0013; 0.0239 0.0013]; % dimensions in [m]
+
     % STANDARD BALL SIZES
-    % arranged into a matrix where each row is a size (S/M/L)
+    % arranged into a matrix where each row is a size (S/M/L/XL)
     % each row is arranged like: [diameter width]
     Ball_SZ = [0.08 0.06; 0.082 0.0615; 0.084 0.063; 0.095 0.063]; % dimensions in [m]
 
@@ -264,7 +270,24 @@ function exportDimensions(dimensions)
     fprintf(shaft, '"length_shaft"=%.2f\n',dimensions.l_s);
     fprintf(shaft, '"large_length_shaft"=%.2f\n',dimensions.L_s/2); % divided by two bc that's how the SW part is made
     fprintf(shaft, '"width_key"=%.2f\n',dimensions.w_k + 0.5); % key width + 0.5mm tolerance
+    fprintf(shaft, '"snap_ring_location"=%.2f\n',dimensions.L_s/2 + 1.00 + 0.25 + dimensions.JBl);
+    fprintf(shaft, '"snap_ring_groove_radius"=%.2f\n',dimensions.rr_r);
+    fprintf(shaft, '"snap_ring_groove_width"=%.2f\n',dimensions.rr_w);
     fclose(shaft);
+
+    %-------- JOURNAL BEARING DIMENSIONS --------
+    JB_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'journalbearing.txt');
+    JB = fopen(JB_filePath, 'w');
+    if JB == -1
+        error('Could not create journalbearing.txt');
+    end
+
+    fprintf(JB, '"inner_diameter"=%.2f\n', dimensions.JBid);
+    fprintf(JB, '"outer_diameter"=%.2f\n', dimensions.JBod);
+    fprintf(JB, '"length"=%.2f\n', dimensions.JBl);
+    fprintf(JB, '"flange_thickness"=%.2f\n', dimensions.JBft);
+    fprintf(JB, '"flange_diameter"=%.2f\n', dimensions.JBfod);
+    fclose(JB);
 
     %-------- KEY DIMENSIONS --------
     key_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'key.txt');
@@ -449,7 +472,12 @@ function results = getResults(BW, H)
         % get journal bearing specs
         fprintf(log, 'Journal bearing for inner diameter of %.2fmm:\n', rawDiameter.d*1000);
         JB = ShaftAnalysis.getJB(F_k, rawDiameter.d);
-        fprintf(log, 'ID: %.2fmm, OD: %.2fmm, Length: %.2fmm, Part no. %s\n\n', JB.id*1000, JB.od*1000, JB.l*1000, JB.part{1});
+        fprintf(log, 'ID: %.2fmm\n', JB.id*1000);
+        fprintf(log, 'OD: %.2fmm\n', JB.od*1000);
+        fprintf(log, 'Length: %.2fmm\n', JB.l*1000);
+        fprintf(log, 'Flange thickness: %.2fmm\n', JB.ft*1000);
+        fprintf(log, 'Flange OD: %.2fmm\n', JB.fod*1000);
+        fprintf(log, 'Part no. %s\n\n', JB.part{1});
     
         % get adjusted shaft dimensions from journal bearing
         adjDiameter = ShaftAnalysis.getFinalShaftDimensions(JB, Main.Shaft_SZ(sz,1));
@@ -491,6 +519,10 @@ function results = getResults(BW, H)
     % get key dimension
     w_k = ShaftAnalysis.getWk(Main.Shaft_SZ(sz,2));
     fprintf(log, 'Width of key: %.2f mm\n\n', w_k*1000);
+
+    % get retaining ring groove dimensions
+    rr_r = Main.Ring_SZ(sz,1)/2;  % [m], groove radius
+    rr_w = Main.Ring_SZ(sz,2);  % [m], groove width
 
     fprintf(log, '-------- SELECT BALL SIZE FOR CORRESPONDING SHAFT SIZE --------:\n\n');
 
@@ -568,7 +600,10 @@ function results = getResults(BW, H)
     results.JBod = JB.od*1000;
     results.JBl = JB.l*1000;
     results.JBft = JB.ft*1000;
+    results.JBfod = JB.fod*1000;
     results.JBpart = JB.part{1};
+    results.rr_r = rr_r*1000;
+    results.rr_w = rr_w*1000;
     results.w_k = w_k*1000;
     results.r_b = r_b*1000;
     results.w_b = w_b*1000;
