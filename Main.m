@@ -314,6 +314,10 @@ function exportDimensions(dimensions)
     fprintf(ball, '"key_slot"=%.2f\n',dimensions.w_k + 0.5);
     fprintf(ball, '"shaft_extrude"=%.2f\n',dimensions.D_s + 15);
     fprintf(ball, '"hydraulic_pin_bore"=%.2f\n',dimensions.d_pin + 0.5);
+    fprintf(ball, '"hydraulic_pin_radius"=%.2f\n',dimensions.r_b*0.75);
+    fprintf(ball, '"hydraulic_slot_width"=%.2f\n',(dimensions.D_cyl + 4)/2);    % divided by two since that's how it's defined in SW
+    fprintf(ball, '"hydraulic_slot_diameter"=%.2f\n',dimensions.d_pin*1.65);
+    fprintf(ball, '"hydraulic_slot_half_diameter"=%.2f\n',(dimensions.d_pin*1.65 + (dimensions.d_pin + 0.5))/2);
     fclose(ball);
 
     %-------- FRAME DIMENSIONS --------
@@ -523,6 +527,9 @@ function results = getResults(BW, H)
     % get retaining ring groove dimensions
     rr_r = Main.Ring_SZ(sz,1)/2;  % [m], groove radius
     rr_w = Main.Ring_SZ(sz,2);  % [m], groove width
+
+    % export retaining ring size
+    Rings.getRRing(Main.Shaft_SZ(sz,3)*1000);
 
     fprintf(log, '-------- SELECT BALL SIZE FOR CORRESPONDING SHAFT SIZE --------:\n\n');
 
