@@ -122,6 +122,7 @@ function displayTable = displayResults(results)
         'upper_bending_stress'; 'upper_bending_FoS'; 'upper_vm_stress'; 'upper_vm_FoS';
         'lower_bolt_shear'; 'lower_bolt_FoS'; 'lower_bearing_stress'; 'lower_bearing_FoS';
         'lower_axial_stress'; 'lower_axial_FoS'; 'lower_vm_stress'; 'lower_vm_FoS';
+        'lock_k_spring'; 'lock_t_latch'; 'lock_w_key'; 'lock_d_pin';
         'd_pin'; 'l_pin_upper'; 'l_pin_lower'; 'D_cyl'; 'delta_p_req'; 'Q_max_hyd';
         'L_restriction'; 'F_needle'; 'stroke_cyl'; 'L_cyl_min'; 'L_cyl_max'
     };
@@ -138,7 +139,9 @@ function displayTable = displayResults(results)
         'Upper adapter: Bending FoS'; 'Upper adapter: Von Mises equivalent stress'; 'Upper adapter: Von Mises FoS';
         'Lower adapter: Bolt shear stress'; 'Lower adapter: Bolt shear FoS'; 'Lower adapter: Bearing stress';
         'Lower adapter: Bearing FoS'; 'Lower adapter: Axial compression stress'; 'Lower adapter: Axial compression FoS';
-        'Lower adapter: Von Mises equivalent stress'; 'Lower adapter: Von Mises FoS'; 'Hydraulic pin diameter';
+        'Lower adapter: Von Mises equivalent stress'; 'Lower adapter: Von Mises FoS';
+        'Lock spring constant'; 'Lock latch thickness'; 'Lock key width'; 'Lock pin diameter';
+        'Hydraulic pin diameter';
         'Upper hydraulic pin length'; 'Lower hydraulic pin length'; 'Hydraulic cylinder bore diameter (standard)';
         'Required cylinder pressure'; 'Maximum hydraulic flow rate'; 'Hagen-Poiseuille restriction channel length';
         'Minimum servo needle axial force'; 'Cylinder piston stroke'; 'Cylinder retracted length at min gait flexion';
@@ -157,6 +160,7 @@ function displayTable = displayResults(results)
         round(results.lower_bolt_shear, 2); round(results.lower_bolt_FoS, 2); round(results.lower_bearing_stress, 2);
         round(results.lower_bearing_FoS, 2); round(results.lower_axial_stress, 2); round(results.lower_axial_FoS, 2);
         round(results.lower_vm_stress, 2); round(results.lower_vm_FoS, 2);
+        round(results.lock_k_spring, 2); round(results.lock_t_latch, 2); round(results.lock_w_key, 2); round(results.lock_d_pin, 2);
         round(results.d_pin, 2); round(results.l_pin_upper,2); round(results.l_pin_lower,2); results.D_cyl;
         results.delta_p_req; results.Q_max_hyd; results.L_restriction; results.F_needle; results.stroke_cyl;
         results.L_cyl_min; results.L_cyl_max
@@ -167,6 +171,7 @@ function displayTable = displayResults(results)
         'mm'; 'mm'; 'mm'; 'mm'; 'mm'; 'L/min'; 'N/A'; 'N/A'; 'N/A';
         'MPa'; 'N/A'; 'MPa'; 'N/A'; 'MPa'; 'N/A'; 'MPa'; 'N/A';
         'MPa'; 'N/A'; 'MPa'; 'N/A'; 'MPa'; 'N/A'; 'MPa'; 'N/A';
+        'N/m'; 'mm'; 'mm'; 'mm';
         'mm'; 'mm'; 'mm'; 'mm'; 'MPa'; 'mL/s'; 'mm'; 'N'; 'mm'; 'mm'; 'mm'
     };
     
@@ -532,13 +537,13 @@ function results = getResults(BW, H)
     fprintf(log, 'Upper pin length: %.2f mm\n', pin.length_upper*1000);
     fprintf(log, 'Lower pin length: %.2f mm\n\n', pin.length_lower*1000);
 
-    % get lock dimensions - NOT YET DISPLAYED IN THE GUI
+    % get lock dimensions and integrate results into GUI output
     fprintf(log, '-------- LOCK ANALYSIS --------:\n\n');
     m_f = JointReactionForce.getMf(BW);
     m_ll = JointReactionForce.getMl(BW);
     d_f = JointReactionForce.getLl(H) + 0.5*JointReactionForce.getLf(H);
     d_ll = 0.433*JointReactionForce.getLl(H);
-    Lock.LockDim(log, m_f, m_ll, d_f, d_ll, M_k, w_b);
+    lock_dimensions = Lock.LockDim(log, m_f, m_ll, d_f, d_ll, M_k, w_b);
 
     % get pyramid adapter safety factors
     fprintf(log, '-------- PYRAMID ADAPTER ANALYSIS --------:\n\n');
@@ -618,6 +623,13 @@ function results = getResults(BW, H)
     results.lower_axial_FoS = n_ax_lower;
     results.lower_vm_stress = sigma_vm_lower;
     results.lower_vm_FoS = n_vm_lower;
+
+    % Lock Mechanism Detailed Results
+    results.lock_k_spring = lock_dimensions.k;
+    results.lock_t_latch = lock_dimensions.t_latch*1000;
+    results.lock_w_key = lock_dimensions.w_key*1000;
+    results.lock_d_pin = lock_dimensions.d_pin*1000;
+
     results.d_pin = pin.diameter*1000;
     results.l_pin_upper = pin.length_upper*1000;
     results.l_pin_lower = pin.length_lower*1000;
