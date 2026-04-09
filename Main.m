@@ -68,7 +68,7 @@ properties (Constant)
     % PYRAMID ADAPTER MATERIAL
 
     % Stainless Steel (none specified, assume AISI 316L )
-    Sy_py = 276; % [MPa] yield strength
+    Sy_py = 170; % [MPa] yield strength (AISI 316L Stainless Steel)
 
 % =========================================================
 % SIZING CHART
@@ -114,138 +114,70 @@ end
 
 % Create array of results to display to GUI
 function displayTable = displayResults(results)
-
-    displayTable = table( ...
-        {
-            'D_s'
-            'd_s'
-            'L_s'
-            'l_s'
-            'Journal bearing'
-            'w_k'
-            'r_b'
-            'w_b'
-            'd_isu'
-            't_su'
-            'L_fr'
-            'a'
-            'b'
-            't_lp'
-            'd_valve'
-            'Q'
-            'Cv'
-            'n_upper_py'
-            'n_lower_py'
-            'd_pin'
-            'l_pin_upper'
-            'l_pin_lower'
-            'D_cyl'
-            'delta_p_req'
-            'Q_max_hyd'
-            'L_restriction'
-            'F_needle'
-            'stroke_cyl'
-            'L_cyl_min'
-            'L_cyl_max'
-        }, ...
-        {
-            'Large diamer of the shaft'
-            'Small diameter of the shaft'
-            'Length of large diameter section of the shaft'
-            'Total length of the shaft'
-            'Journal bearing specifications'
-            'Width of the square key'
-            'Radius of the ball'
-            'Width of the ball'
-            'Inner diameter of the supports'
-            'Thickness of the supports'
-            'Length of the frame legs'
-            'Frame leg cross section, long dimension (width)'
-            'Frame leg cross section, short dimension (thickness)'
-            'Thickness of the lip'
-            'Optimal valve diameter'
-            'Flow rate'
-            'Cv value for valve'
-            'Safety factor for upper pyramid adapter'
-            'Saftey factor for lower pyramid adapter'
-            'Hydraulic pin diameter'
-            'Upper hydraulic pin length'
-            'Lower hydraulic pin length'
-            'Hydraulic cylinder bore diameter (standard)'
-            'Required cylinder pressure'
-            'Maximum hydraulic flow rate'
-            'Hagen-Poiseuille restriction channel length'
-            'Minimum servo needle axial force'
-            'Cylinder piston stroke'
-            'Cylinder retracted length at min gait flexion'
-            'Cylinder extended length at max gait flexion'
-        }, ...
-        {
-            round(results.D_s,2)
-            round(results.d_s,2)
-            round(results.L_s,2)
-            round(results.l_s,2)
-            sprintf('ID: %.2f, OD: %.2f, Length: %.2f, Part no. %s', results.JBid, results. JBod, results.JBl, results.JBpart)
-            round(results.w_k,2)
-            round(results.r_b,2)
-            round(results.w_b,2)
-            round(results.d_isu,2)
-            results.t_su 
-            round(results.L_fr,2)
-            results.a 
-            results.b 
-            results.t_lp
-            results.d_valve
-            results.Q
-            results.Cv
-            results.n_upper_py
-            results.n_lower_py
-            round(results.d_pin,2)
-            round(results.l_pin_upper,2)
-            round(results.l_pin_lower,2)
-            results.D_cyl
-            results.delta_p_req
-            results.Q_max_hyd
-            results.L_restriction
-            results.F_needle
-            results.stroke_cyl
-            results.L_cyl_min
-            results.L_cyl_max
-        }, ...
-        {
-            'mm'
-            'mm'
-            'mm'
-            'mm'
-            'mm (diameters and length)'
-            'mm'
-            'mm'
-            'mm'
-            'mm'
-            'mm'
-            'mm'
-            'mm'
-            'mm'
-            'mm'
-            'mm'
-            'L/min'
-            'N/A'
-            'N/A'
-            'N/A'
-            'mm'
-            'mm'
-            'mm'
-            'mm'
-            'MPa'
-            'mL/s'
-            'mm'
-            'N'
-            'mm'
-            'mm'
-            'mm'
-        }, ...
-        'VariableNames', {'Variable Name','Description','Value','Units'} ...
-    );
+    % Create table data more explicitly to ensure consistent row counts
+    varNames = {
+        'D_s'; 'd_s'; 'L_s'; 'l_s'; 'Journal bearing'; 'w_k'; 'r_b'; 'w_b'; 'd_isu'; 't_su';
+        'L_fr'; 'a'; 'b'; 't_lp'; 'd_valve'; 'Q'; 'Cv'; 'n_upper_py'; 'n_lower_py';
+        'upper_thread_shear'; 'upper_thread_FoS'; 'upper_axial_stress'; 'upper_axial_FoS'; 
+        'upper_bending_stress'; 'upper_bending_FoS'; 'upper_vm_stress'; 'upper_vm_FoS';
+        'lower_bolt_shear'; 'lower_bolt_FoS'; 'lower_bearing_stress'; 'lower_bearing_FoS';
+        'lower_axial_stress'; 'lower_axial_FoS'; 'lower_vm_stress'; 'lower_vm_FoS';
+        'd_pin'; 'l_pin_upper'; 'l_pin_lower'; 'D_cyl'; 'delta_p_req'; 'Q_max_hyd';
+        'L_restriction'; 'F_needle'; 'stroke_cyl'; 'L_cyl_min'; 'L_cyl_max'
+    };
+    
+    descriptions = {
+        'Large diameter of the shaft'; 'Small diameter of the shaft'; 'Length of large diameter section of the shaft';
+        'Total length of the shaft'; 'Journal bearing specifications'; 'Width of the square key';
+        'Radius of the ball'; 'Width of the ball'; 'Inner diameter of the supports'; 'Thickness of the supports';
+        'Length of the frame legs'; 'Frame leg cross section, long dimension (width)';
+        'Frame leg cross section, short dimension (thickness)'; 'Thickness of the lip'; 'Optimal valve diameter';
+        'Flow rate'; 'Cv value for valve'; 'Safety factor for upper pyramid adapter';
+        'Safety factor for lower pyramid adapter'; 'Upper adapter: Thread shear stress'; 'Upper adapter: Thread stripping FoS';
+        'Upper adapter: Axial compression stress'; 'Upper adapter: Axial compression FoS'; 'Upper adapter: Bending stress';
+        'Upper adapter: Bending FoS'; 'Upper adapter: Von Mises equivalent stress'; 'Upper adapter: Von Mises FoS';
+        'Lower adapter: Bolt shear stress'; 'Lower adapter: Bolt shear FoS'; 'Lower adapter: Bearing stress';
+        'Lower adapter: Bearing FoS'; 'Lower adapter: Axial compression stress'; 'Lower adapter: Axial compression FoS';
+        'Lower adapter: Von Mises equivalent stress'; 'Lower adapter: Von Mises FoS'; 'Hydraulic pin diameter';
+        'Upper hydraulic pin length'; 'Lower hydraulic pin length'; 'Hydraulic cylinder bore diameter (standard)';
+        'Required cylinder pressure'; 'Maximum hydraulic flow rate'; 'Hagen-Poiseuille restriction channel length';
+        'Minimum servo needle axial force'; 'Cylinder piston stroke'; 'Cylinder retracted length at min gait flexion';
+        'Cylinder extended length at max gait flexion'
+    };
+    
+    values = {
+        round(results.D_s,2); round(results.d_s,2); round(results.L_s,2); round(results.l_s,2);
+        sprintf('ID: %.2f, OD: %.2f, Length: %.2f, Part no. %s', results.JBid, results.JBod, results.JBl, results.JBpart);
+        round(results.w_k,2); round(results.r_b,2); round(results.w_b,2); round(results.d_isu,2); results.t_su;
+        round(results.L_fr,2); results.a; results.b; results.t_lp; results.d_valve; results.Q; results.Cv;
+        results.n_upper_py; results.n_lower_py;
+        round(results.upper_thread_shear, 2); round(results.upper_thread_FoS, 2); round(results.upper_axial_stress, 2);
+        round(results.upper_axial_FoS, 2); round(results.upper_bending_stress, 2); round(results.upper_bending_FoS, 2);
+        round(results.upper_vm_stress, 2); round(results.upper_vm_FoS, 2);
+        round(results.lower_bolt_shear, 2); round(results.lower_bolt_FoS, 2); round(results.lower_bearing_stress, 2);
+        round(results.lower_bearing_FoS, 2); round(results.lower_axial_stress, 2); round(results.lower_axial_FoS, 2);
+        round(results.lower_vm_stress, 2); round(results.lower_vm_FoS, 2);
+        round(results.d_pin, 2); round(results.l_pin_upper,2); round(results.l_pin_lower,2); results.D_cyl;
+        results.delta_p_req; results.Q_max_hyd; results.L_restriction; results.F_needle; results.stroke_cyl;
+        results.L_cyl_min; results.L_cyl_max
+    };
+    
+    units = {
+        'mm'; 'mm'; 'mm'; 'mm'; 'mm (diameters and length)'; 'mm'; 'mm'; 'mm'; 'mm'; 'mm';
+        'mm'; 'mm'; 'mm'; 'mm'; 'mm'; 'L/min'; 'N/A'; 'N/A'; 'N/A';
+        'MPa'; 'N/A'; 'MPa'; 'N/A'; 'MPa'; 'N/A'; 'MPa'; 'N/A';
+        'MPa'; 'N/A'; 'MPa'; 'N/A'; 'MPa'; 'N/A'; 'MPa'; 'N/A';
+        'mm'; 'mm'; 'mm'; 'mm'; 'MPa'; 'mL/s'; 'mm'; 'N'; 'mm'; 'mm'; 'mm'
+    };
+    
+    % Verify all arrays have same length
+    n = length(varNames);
+    assert(length(descriptions) == n, 'Descriptions array length mismatch');
+    assert(length(values) == n, 'Values array length mismatch');
+    assert(length(units) == n, 'Units array length mismatch');
+    
+    % Create table
+    displayTable = table(varNames, descriptions, values, units, 'VariableNames', {'Variable Name','Description','Value','Units'});
 
 end
 
@@ -257,9 +189,16 @@ end
 function exportDimensions(dimensions)
     
     basePath = fileparts(mfilename('fullpath'));
+    eqDir = fullfile(basePath, 'Solidworks', 'Equations');
+    if ~isfolder(eqDir)
+        [ok, msg] = mkdir(eqDir);
+        if ~ok
+            error('Could not create Solidworks/Equations directory: %s', msg);
+        end
+    end
 
     %-------- SHAFT DIMENSIONS --------
-    shaft_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'shaft.txt');
+    shaft_filePath = fullfile(eqDir, 'shaft.txt');
     shaft = fopen(shaft_filePath, 'w');
     if shaft == -1
         error('Could not create shaft.txt');
@@ -276,7 +215,7 @@ function exportDimensions(dimensions)
     fclose(shaft);
 
     %-------- JOURNAL BEARING DIMENSIONS --------
-    JB_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'journalbearing.txt');
+    JB_filePath = fullfile(eqDir, 'journalbearing.txt');
     JB = fopen(JB_filePath, 'w');
     if JB == -1
         error('Could not create journalbearing.txt');
@@ -290,7 +229,7 @@ function exportDimensions(dimensions)
     fclose(JB);
 
     %-------- KEY DIMENSIONS --------
-    key_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'key.txt');
+    key_filePath = fullfile(eqDir, 'key.txt');
     key = fopen(key_filePath, 'w');
     if key == -1
         error('Could not create key.txt');
@@ -301,7 +240,7 @@ function exportDimensions(dimensions)
     fclose(key);
 
     %-------- BALL DIMENSIONS --------
-    ball_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'ball.txt');
+    ball_filePath = fullfile(eqDir, 'ball.txt');
     ball = fopen(ball_filePath, 'w');
     if ball == -1
         error('Could not create ball.txt');
@@ -322,7 +261,7 @@ function exportDimensions(dimensions)
     fclose(ball);
 
     %-------- FRAME DIMENSIONS --------
-    frame_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'frame.txt');
+    frame_filePath = fullfile(eqDir, 'frame.txt');
     frame = fopen(frame_filePath, 'w');
     if frame == -1
         error('Could not create frame.txt');
@@ -426,9 +365,15 @@ function results = getResults(BW, H)
     addpath(fullfile(rootDir, 'analysis'));
     addpath(fullfile(rootDir, 'components'));
 
-    % create log file
-    basePath = fileparts(mfilename('fullpath'));
-    log_filePath = fullfile(basePath,'..', 'Log', 'group12_LOG.txt');
+    % create log file in the project logs folder
+    logDir = fullfile(rootDir, 'logs');
+    if ~isfolder(logDir)
+        [ok, msg] = mkdir(logDir);
+        if ~ok
+            error('Could not create log directory: %s', msg);
+        end
+    end
+    log_filePath = fullfile(logDir, 'group12_LOG.txt');
     log = fopen(log_filePath, 'w');
     if log == -1
         error('Could not create log file');
@@ -593,12 +538,39 @@ function results = getResults(BW, H)
     m_ll = JointReactionForce.getMl(BW);
     d_f = JointReactionForce.getLl(H) + 0.5*JointReactionForce.getLf(H);
     d_ll = 0.433*JointReactionForce.getLl(H);
-    lock_dimensions = Lock.LockDim(log, m_f, m_ll, d_f, d_ll, M_k, w_b);
+    Lock.LockDim(log, m_f, m_ll, d_f, d_ll, M_k, w_b);
 
     % get pyramid adapter safety factors
     fprintf(log, '-------- PYRAMID ADAPTER ANALYSIS --------:\n\n');
+    
+    % Upper Adapter Analysis
+    [tau_s_upper, n_strip_upper, thread_pass] = PyramidAdapter.analyzeThreadStripping();
+    [sigma_ax_upper, n_ax_upper] = PyramidAdapter.analyzeUpperAxialCompression();
+    [sigma_bend_upper, n_bend_upper] = PyramidAdapter.analyzeUpperBending();
+    [~, ~, sigma_vm_upper, n_vm_upper] = PyramidAdapter.analyzeUpperCombinedStress();
+    
+    % Lower Adapter Analysis
+    [tau_bolt_lower, n_bolt_lower, bolt_pass] = PyramidAdapter.analyzeBoltShear();
+    [sigma_bear_lower, n_bear_lower, bear_pass] = PyramidAdapter.analyzeBoltBearing();
+    [sigma_ax_lower, n_ax_lower] = PyramidAdapter.analyzeLowerAxialCompression();
+    [~, ~, sigma_vm_lower, n_vm_lower] = PyramidAdapter.analyzeLowerCombinedStress();
+    
+    % Compatibility functions for original FoS calculation
     FoS_yield_u = PyramidAdapter.getFoS_yield_u(F_kx, F_ky, Main.Sy_py);
     FoS_yield_b = PyramidAdapter.getFoS_yield_b(F_kx, F_ky, Main.Sy_py);
+    
+    % Log detailed pyramid adapter results
+    fprintf(log, '--- UPPER ADAPTER ---\n');
+    fprintf(log, 'Thread Stripping: Shear Stress = %.2f MPa, FoS = %.2f, Pass = %d\n', tau_s_upper, n_strip_upper, thread_pass);
+    fprintf(log, 'Axial Compression: Stress = %.2f MPa, FoS = %.2f\n', sigma_ax_upper, n_ax_upper);
+    fprintf(log, 'Bending: Stress = %.2f MPa, FoS = %.2f\n', sigma_bend_upper, n_bend_upper);
+    fprintf(log, 'Combined (Von Mises): Stress = %.2f MPa, FoS = %.2f\n\n', sigma_vm_upper, n_vm_upper);
+    
+    fprintf(log, '--- LOWER ADAPTER ---\n');
+    fprintf(log, 'Bolt Shear: Stress = %.2f MPa, FoS = %.2f, Pass = %d\n', tau_bolt_lower, n_bolt_lower, bolt_pass);
+    fprintf(log, 'Bolt Bearing: Stress = %.2f MPa, FoS = %.2f, Pass = %d\n', sigma_bear_lower, n_bear_lower, bear_pass);
+    fprintf(log, 'Axial Compression: Stress = %.2f MPa, FoS = %.2f\n', sigma_ax_lower, n_ax_lower);
+    fprintf(log, 'Combined (Von Mises): Stress = %.2f MPa, FoS = %.2f\n\n', sigma_vm_lower, n_vm_lower);
 
     results.D_s = Main.Shaft_SZ(sz,2)*1000;
     results.d_s = Main.Shaft_SZ(sz,3)*1000;
@@ -626,6 +598,26 @@ function results = getResults(BW, H)
     results.Cv = valve.Cv;
     results.n_upper_py = FoS_yield_u;
     results.n_lower_py = FoS_yield_b;
+    
+    % Upper Adapter Detailed Results
+    results.upper_thread_shear = tau_s_upper;
+    results.upper_thread_FoS = n_strip_upper;
+    results.upper_axial_stress = sigma_ax_upper;
+    results.upper_axial_FoS = n_ax_upper;
+    results.upper_bending_stress = sigma_bend_upper;
+    results.upper_bending_FoS = n_bend_upper;
+    results.upper_vm_stress = sigma_vm_upper;
+    results.upper_vm_FoS = n_vm_upper;
+    
+    % Lower Adapter Detailed Results
+    results.lower_bolt_shear = tau_bolt_lower;
+    results.lower_bolt_FoS = n_bolt_lower;
+    results.lower_bearing_stress = sigma_bear_lower;
+    results.lower_bearing_FoS = n_bear_lower;
+    results.lower_axial_stress = sigma_ax_lower;
+    results.lower_axial_FoS = n_ax_lower;
+    results.lower_vm_stress = sigma_vm_lower;
+    results.lower_vm_FoS = n_vm_lower;
     results.d_pin = pin.diameter*1000;
     results.l_pin_upper = pin.length_upper*1000;
     results.l_pin_lower = pin.length_lower*1000;

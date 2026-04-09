@@ -85,7 +85,14 @@ methods (Static)
 
         % create and export dimensions to text file
         basePath = fileparts(mfilename('fullpath'));
-        filePath = fullfile(basePath, '..', '..', 'Solidworks', 'Equations', 'retainingring.txt');
+        eqDir = fullfile(basePath, '..', 'Solidworks', 'Equations');
+        if ~isfolder(eqDir)
+            [ok, msg] = mkdir(eqDir);
+            if ~ok
+                error('Could not create Solidworks/Equations directory: %s', msg);
+            end
+        end
+        filePath = fullfile(eqDir, 'retainingring.txt');
         file = fopen(filePath, 'w');
         if file == -1
             error('Could not create retainingring.txt');
