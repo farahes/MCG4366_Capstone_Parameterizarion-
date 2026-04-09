@@ -70,15 +70,23 @@ methods (Static)
 
     % ========== COMPATIBILITY METHODS (for Main.m integration) ==========
     
-    % getFoS_yield_u: Returns yield safety factor for upper adapter
+    % getFoS_yield_u: Returns yield safety factor for upper adapter.
+    % Inputs Fx and Fy are intentionally ignored here to preserve the
+    % original Main.m call signature.
     function FoS_yield_u = getFoS_yield_u(~, ~, Sy)
+        % sigma_vm: von Mises equivalent stress at upper adapter [MPa]
         [~, ~, sigma_vm, ~] = PyramidAdapter.analyzeUpperCombinedStress();
+        % FoS_yield_u: yield safety factor = Sy / sigma_vm
         FoS_yield_u = Sy / sigma_vm;
     end
     
-    % getFoS_yield_b: Returns yield safety factor for lower adapter
+    % getFoS_yield_b: Returns yield safety factor for lower adapter.
+    % Inputs Fx and Fy are intentionally ignored here to preserve the
+    % original Main.m call signature.
     function FoS_yield_b = getFoS_yield_b(~, ~, Sy)
+        % sigma_vm: von Mises equivalent stress at lower adapter [MPa]
         [~, ~, sigma_vm, ~] = PyramidAdapter.analyzeLowerCombinedStress();
+        % FoS_yield_b: yield safety factor = Sy / sigma_vm
         FoS_yield_b = Sy / sigma_vm;
     end
 
