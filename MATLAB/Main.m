@@ -456,7 +456,8 @@ function results = getResults(BW, H)
     addpath(fullfile(rootDir, 'components'));
 
     % create log file in the project logs folder
-    logDir = fullfile(rootDir, 'logs');
+    basePath = fileparts(mfilename('fullpath'));
+    logDir = fullfile(basePath,'..', 'Log');
     if ~isfolder(logDir)
         [ok, msg] = mkdir(logDir);
         if ~ok
