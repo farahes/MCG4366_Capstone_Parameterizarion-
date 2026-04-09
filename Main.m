@@ -286,6 +286,24 @@ function exportDimensions(dimensions)
     fprintf(frame, '"hydraulic_pin_bore"=%.2f\n',dimensions.d_pin);
     fclose(frame);
 
+    %-------- ALL OUTPUT DIMENSIONS (single consolidated file) --------
+    all_filePath = fullfile(eqDir, 'all_dimensions.txt');
+    all_dims = fopen(all_filePath, 'w');
+    if all_dims == -1
+        error('Could not create all_dimensions.txt');
+    end
+
+    % Write all scalar numeric fields using the same SolidWorks equation format.
+    names = sort(fieldnames(dimensions));
+    for i = 1:numel(names)
+        name = names{i};
+        value = dimensions.(name);
+        if isnumeric(value) && isscalar(value) && isfinite(value)
+            fprintf(all_dims, '"%s"=%.2f\n', name, value);
+        end
+    end
+    fclose(all_dims);
+
     %{
     %-------- HYDRAULIC PIN DIMENSIONS - TOP --------
     hydrpin_top_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'hydrpin.txt');
