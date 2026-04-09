@@ -1,0 +1,2 @@
+"inner_diameter"=3.88
+"head_diameter"=5.82
