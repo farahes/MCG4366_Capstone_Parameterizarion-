@@ -439,6 +439,29 @@ function exportDimensions(dimensions)
     fprintf(spring_screw, '"head_diameter"=%.2f\n',(dimensions.D_spring + dimensions.d_spring + 0.2)*1.1);
     fclose(spring_screw);
 
+    %-------- CASE DIMENSIONS --------
+
+    % REAR ELECTRONIC CASE
+    ecase_rear_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'ecase_rear.txt');
+    ecase_rear = fopen(ecase_rear_filePath, 'w');
+    if ecase_rear == -1
+        error('Could not create ecase_rear.txt');
+    end
+
+    fprintf(ecase_rear, '"case_width"=%.2f\n',dimensions.w_b + 2*dimensions.t_su + 2*1.00 - 2*dimensions.a);
+    fclose(ecase_rear);
+
+    % SIDE ELECTRONIC CASE
+    ecase_side_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'ecase_side.txt');
+    ecase_side = fopen(ecase_side_filePath, 'w');
+    if ecase_side == -1
+        error('Could not create ecase_side.txt');
+    end
+
+    side_case_width = 2*(dimensions.r_b + dimensions.t_lp + 0.25)*sin(deg2rad(50)) - 2*dimensions.a - 0.5;
+    fprintf(ecase_side, '"case_width"=%.2f\n', side_case_width);
+    fclose(ecase_side);
+
     %{
     %-------- HYDRAULIC PIN DIMENSIONS - TOP --------
     hydrpin_top_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'hydrpin.txt');
