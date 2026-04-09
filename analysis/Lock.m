@@ -48,13 +48,13 @@ properties (Constant)
     G_spring = 73e6;    % [Pa], from Juvinall stainless steel
 
     % Safety factor
-    n = 4;  % TBC but greater than 2 ideally
+    n = 4;
 
     % Lock geometry (arbitraly fixed dimensions)
     h_hump = 2e-3; % [m]
     y_pre = 4e-3; % [m]
-    t_latch = 10e-3;   % [m]
-    l_handle = 40e-3;  % [m]
+    t_latch = 15e-3;   % [m]
+    l_handle = 30e-3;  % [m]
 
     % Engagement/disengagement torsion
     M_T = 0.378; % [Nm], from source
@@ -91,7 +91,7 @@ methods (Static)
 % SPRING STIFFNESS
 % =========================================================
 
-    % calculate the spring stiffness required to acheive easy
+    % calculate the maximum spring stiffness allowed to acheive easy
     % engagement/disengagement [N/m]
     function k = k(F_T)
         k = F_T/(Lock.h_hump + Lock.y_pre);
@@ -129,7 +129,7 @@ methods (Static)
 
     % calculate the limiting pin diameter due to bending
     function d_pin = d_pin_bending(F_C, sigma_pin)
-        M_b = F_C*(0.5*Lock.t_latch);
+        M_b = F_C*(0.75*Lock.t_latch);
         d_pin = (32*M_b/(pi*sigma_pin))^(1/3);
     end
 
@@ -165,14 +165,14 @@ end
     function LockDim = LockDim(log, m_f, m_ll, d_f, d_ll, M_k, r_ball)
 
         fprintf(log, 'Minimum set safety factor: %d\n\n', Lock.n);
-        fprintf(log, 'Lock dimensions:\n');
+        fprintf(log, 'Limiting lock dimensions:\n');
        
-        % Lock dimensions
+        % Limiting lock dimensions
         T = Lock.M_T;
         fprintf(log, 'Torque to engage/disengage lock: %.3f Nm\n', T);
         F_T = Lock.F_T();
-        LockDim.k = Lock.k(F_T);
-        fprintf(log, 'Spring constant: %.2f N/m\n', LockDim.k);
+        k = Lock.k(F_T);
+        fprintf(log, 'Spring constant: %.2f N/m\n', k);
 
         M = max(M_k,Lock.M_leg(m_f, m_ll, d_f, d_ll));
         F_C = Lock.F_C(M, r_ball);
@@ -182,24 +182,23 @@ end
         fprintf(log, 'Maximum allowable shear stress: %.2f Pa\n', tau_allowable);
         fprintf(log, 'Maximum allowable bending stress: %.2f Pa\n', sigma_allowable);
 
-        LockDim.t_latch = Lock.t_latch;
-        fprintf(log, 'Set latch thickness: %.2f mm\n', LockDim.t_latch*1000);
-        LockDim.w_key = Lock.w_key(F_C,LockDim.k,Lock.h_hump + Lock.y_pre,tau_allowable);
-        fprintf(log, 'Minimum width of pin keys: %.2f mm\n', LockDim.w_key*1000);
+        t_latch = Lock.t_latch;
+        fprintf(log, 'Set latch thickness: %.2f mm\n', t_latch*1000);
+        w_key = Lock.w_key(F_C,k,Lock.h_hump + Lock.y_pre,tau_allowable);
+        fprintf(log, 'Minimum width of pin keys: %.2f mm\n', w_key*1000);
 
         d_pin_shear = Lock.d_pin_shear(F_C, tau_allowable);
         d_pin_torsion = Lock.d_pin_torsion(tau_allowable);
         d_pin_bending = Lock.d_pin_bending(F_C, sigma_allowable);
-        LockDim.d_pin = max([d_pin_shear,d_pin_torsion,d_pin_bending]);
+        d_pin = max([d_pin_shear,d_pin_torsion,d_pin_bending]);
         fprintf(log, 'Limiting pin diameter due to shear: %.2f mm\n', d_pin_shear*1000);
         fprintf(log, 'Limiting pin diameter due to torsion: %.2f mm\n', d_pin_torsion*1000);
         fprintf(log, 'Limiting pin diameter due to bending: %.2f mm\n', d_pin_bending*1000);
-        fprintf(log, 'Pin diameter: %.2f mm\n', LockDim.d_pin*1000);
+        fprintf(log, 'Minimum pin diameter: %.2f mm\n', d_pin*1000);
         
-
-        % Spring dimensions
+        % Limiting spring dimensions
         fprintf(log, '\nSpring dimensions:\n');
-        D = LockDim.d_pin;
+        D = d_pin*0.75;
         d = 0.001;  % to start, set d = 1mm
         while (true)
             C = Lock.C(D,d);
@@ -207,28 +206,30 @@ end
             fprintf(log, 'd (wire diameter): %.2f mm\n', d*1000);
             fprintf(log, 'C:    %.2f\n', C);
    
-            if (C >= 5 && C <= 9)
-                fprintf(log, 'C within acceptable bounds of 5-9\n');
+            if (C >= 4 && C <= 12)
+                fprintf(log, 'C within acceptable bounds of 4-12\n');
                 break;
-            elseif (C < 5)
-                fprintf(log, 'C is outside of acceptable bound, C < 5\n');
+            elseif (C < 4)
+                fprintf(log, 'C is outside of acceptable bound, C < 4\n');
                 D = D + 0.001;  % increase D
-            elseif (C > 9)
-                fprintf(log, 'C is outside of acceptable bound, C > 9\n');
+            elseif (C > 12)
+                fprintf(log, 'C is outside of acceptable bound, C > 12\n');
                 d = d + 0.001;  % increase d
             end
         end
 
         Ks = Lock.Ks(C);
         Kw = Lock.Kw(C);
-        N = Lock.N(d, LockDim.k, D, Lock.G_spring);
+        N = Lock.N(d, k, D, Lock.G_spring);
         Nt = N + 2;
+        Ls = Nt*d;
         fprintf(log, 'Ks: %.2f\n', Ks);
         fprintf(log, 'Kw: %.2f\n', Kw);
         fprintf(log, 'Number of active coils, N: %.0f\n', N);
         fprintf(log, 'Total number of coils, N_t: %.0f\n', Nt);
+        fprintf(log, 'Solid length of the spring, L_s: %.2f mm\n', Ls*1000);
 
-        F_min = Lock.F_preload(LockDim.k, Lock.y_pre);
+        F_min = Lock.F_preload(k, Lock.y_pre);
         F_max = Lock.F_T();
 
         tau_min = Lock.tau(F_min, D, d, Kw);
@@ -262,6 +263,39 @@ end
         Ssy = 0.53*Lock.Su;
         n_langer = 1/(tau_a/Ssy + tau_m/Ssy);
         fprintf(log, 'Langer, n = %.2f\n\n', n_langer);
+
+        % Final lock dimensions
+        fprintf(log, 'Final lock dimensions:\n');
+        if (w_key < d_pin/4)
+            LockDim.w_key = d_pin/4;
+        else
+            LockDim.w_key = w_key;
+        end
+        LockDim.d_pin = d_pin;
+        LockDim.t_latch = t_latch;
+        % free length of the spring
+        LockDim.Lf = Ls + Lock.y_pre + Lock.h_hump + 0.002; % free length of the spring with 2mm buffer
+        % latch is shaped like a slot (rectangle with two semi-circles on each end), l_latch is the length of the rectangle
+        LockDim.l_latch = d_pin/2 + LockDim.Lf - Lock.y_pre + 0.010 - d_pin;
+        LockDim.w_latch = d_pin*2;
+        LockDim.k_spring = k;
+        LockDim.D_spring = D;
+        LockDim.d_spring = d;
+        LockDim.Nt = Nt;
+        LockDim.l_handle = Lock.l_handle;
+        LockDim.w_handle = d_pin*2;
+
+        fprintf(log, 'Width of pin keys, w_key: %.2f mm\n', LockDim.w_key*1000);
+        fprintf(log, 'Pin diameter, d_pin: %.2f mm\n', LockDim.d_pin*1000);
+        fprintf(log, 'Latch thickness, t_latch: %.2f mm\n', LockDim.t_latch*1000);
+        fprintf(log, 'Free length of spring: %.2f mm\n', LockDim.Lf*1000);
+        fprintf(log, 'Length of the latch, l_latch: %.2f mm\n', LockDim.l_latch*1000);
+        fprintf(log, 'Width of the latch, w_latch: %.2f mm\n', LockDim.w_latch*1000);
+        fprintf(log, 'Length of the handle, l_handle: %.2f mm\n', LockDim.l_handle*1000);
+        fprintf(log, 'Width of the handle, w_handle: %.2f mm\n', LockDim.w_handle*1000);
+        fprintf(log, 'Spring diameter, D_spring: %.2f mm\n', LockDim.D_spring*1000);
+        fprintf(log, 'Coil diameter, d_spring: %.2f mm\n', LockDim.d_spring*1000);
+        fprintf(log, 'Number of coils, Nt: %.0f mm\n\n', LockDim.Nt);
 
     end
 
