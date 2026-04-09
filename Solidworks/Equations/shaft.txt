@@ -1,0 +1,8 @@
+"large_shaft_diameter"=29.00
+"small_shaft_diameter"=25.00
+"length_shaft"=115.00
+"large_length_shaft"=31.50
+"width_key"=7.75
+"snap_ring_location"=52.75
+"snap_ring_groove_radius"=11.95
+"snap_ring_groove_width"=1.30
