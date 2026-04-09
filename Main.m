@@ -319,6 +319,12 @@ function exportDimensions(dimensions)
     fprintf(ball, '"hydraulic_slot_width"=%.2f\n',(dimensions.D_cyl + 4)/2);    % divided by two since that's how it's defined in SW
     fprintf(ball, '"hydraulic_slot_diameter"=%.2f\n',dimensions.d_pin*1.65);
     fprintf(ball, '"hydraulic_slot_half_diameter"=%.2f\n',(dimensions.d_pin*1.65 + (dimensions.d_pin + 0.5))/2);
+    fprintf(ball, '"latch_length"=%.2f\n',dimensions.l_latch+0.2);
+    fprintf(ball, '"latch_width"=%.2f\n',dimensions.w_latch+0.2);
+    fprintf(ball, '"latch_thickness"=%.2f\n',dimensions.t_latch+0.2);
+    fprintf(ball, '"outer_diameter"=%.2f\n',2*dimensions.r_b + 2*dimensions.t_lp + 0.5);
+    fprintf(ball, '"leg_length"=%.2f\n',dimensions.L_fr);
+    fprintf(ball, '"inner_diameter"=%.2f\n',2*dimensions.r_b + 0.5);
     fclose(ball);
 
     %-------- FRAME DIMENSIONS --------
@@ -340,7 +346,98 @@ function exportDimensions(dimensions)
     fprintf(frame, '"leg_thickness"=%.2f\n',dimensions.b);
     fprintf(frame, '"leg_width"=%.2f\n',dimensions.a);
     fprintf(frame, '"hydraulic_pin_bore"=%.2f\n',dimensions.d_pin);
+    fprintf(frame, '"latch_length"=%.2f\n',dimensions.l_latch+0.2);
+    fprintf(frame, '"latch_width"=%.2f\n',dimensions.w_latch+0.2);
+    fprintf(frame, '"lock_extrusion"=%.2f\n',dimensions.lock_d_pin*2);
+    fprintf(frame, '"lock_bore"=%.2f\n',dimensions.lock_d_pin + 0.2);
+    fprintf(frame, '"lock_extrusion_thickness"=%.2f\n',dimensions.t_su + 5 - 0.2);
     fclose(frame);
+
+    %-------- LOCK DIMENSIONS - PIN --------
+    lock_pin_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'lock_pin.txt');
+    lock_pin = fopen(lock_pin_filePath, 'w');
+    if lock_pin == -1
+        error('Could not create lock_pin.txt');
+    end
+
+    fprintf(lock_pin, '"pin_diameter"=%.2f\n',dimensions.lock_d_pin);
+    fprintf(lock_pin, '"pin_length"=%.2f\n',dimensions.t_su + 5 + 0.75*dimensions.t_latch + 7.5);
+    fprintf(lock_pin, '"key_width"=%.2f\n',dimensions.lock_w_key);
+    fprintf(lock_pin, '"key_length"=%.2f\n',dimensions.lock_w_key/2);
+    fprintf(lock_pin, '"key_length_with_hump"=%.2f\n',dimensions.lock_w_key/2 + Lock.h_hump*1000/2);
+    fprintf(lock_pin, '"key_width_with_offset"=%.2f\n',dimensions.lock_w_key + Lock.h_hump*1000);
+    fprintf(lock_pin, '"key_thickness"=%.2f\n',0.75*dimensions.t_latch);
+    fprintf(lock_pin, '"screw_diameter"=%.2f\n',dimensions.lock_d_pin/3);
+    fclose(lock_pin);
+
+    pin_screw_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'lock_pin_screw.txt');
+    pin_screw = fopen(pin_screw_filePath, 'w');
+    if pin_screw == -1
+        error('Could not create lock_pin_screw.txt');
+    end
+
+    fprintf(pin_screw, '"inner_diameter"=%.2f\n',dimensions.lock_d_pin/3);
+    fprintf(pin_screw, '"head_diameter"=%.2f\n',(dimensions.lock_d_pin/3)*1.5);
+    fclose(pin_screw);
+
+    %-------- LOCK DIMENSIONS - HANDLE --------
+    lock_handle_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'lock_handle.txt');
+    lock_handle = fopen(lock_handle_filePath, 'w');
+    if lock_handle == -1
+        error('Could not create lock_handle.txt');
+    end
+
+    fprintf(lock_handle, '"handle_length"=%.2f\n',dimensions.l_handle);
+    fprintf(lock_handle, '"handle_width"=%.2f\n',dimensions.w_handle);
+    fprintf(lock_handle, '"extrude_diameter"=%.2f\n',dimensions.lock_d_pin + 5);
+    fprintf(lock_handle, '"key_width"=%.2f\n',dimensions.lock_w_key);
+    fprintf(lock_handle, '"key_length"=%.2f\n',dimensions.lock_w_key/2);
+    fprintf(lock_handle, '"bore_diameter"=%.2f\n',dimensions.lock_d_pin + 0.2);
+    fprintf(lock_handle, '"screw_diameter"=%.2f\n',dimensions.lock_d_pin/3);
+    fclose(lock_handle);
+
+    %-------- LOCK DIMENSIONS - LATCH --------
+    lock_latch_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'lock_latch.txt');
+    lock_latch = fopen(lock_latch_filePath, 'w');
+    if lock_latch == -1
+        error('Could not create lock_latch.txt');
+    end
+
+    fprintf(lock_latch, '"latch_length"=%.2f\n',dimensions.l_latch);
+    fprintf(lock_latch, '"latch_width"=%.2f\n',dimensions.w_latch);
+    fprintf(lock_latch, '"latch_thickness"=%.2f\n',dimensions.t_latch);
+    fprintf(lock_latch, '"bore_diameter"=%.2f\n',dimensions.lock_d_pin + 0.2);
+    fprintf(lock_latch, '"bore_depth"=%.2f\n',dimensions.t_latch*0.75);
+    fprintf(lock_latch, '"spring_cavity_diameter"=%.2f\n',dimensions.D_spring + dimensions.d_spring + 0.2);
+    fprintf(lock_latch, '"latch_keys_width"=%.2f\n',dimensions.lock_w_key);
+    fprintf(lock_latch, '"latch_keys_with_hump"=%.2f\n',dimensions.lock_w_key/2 + Lock.h_hump*1000/2);
+    fprintf(lock_latch, '"screw_diameter"=%.2f\n',dimensions.lock_d_pin/3);
+    fprintf(lock_latch, '"screw_countersink_diameter"=%.2f\n',(dimensions.lock_d_pin/3)*1.6);
+    fprintf(lock_latch, '"spring_screw_countersink_diameter"=%.2f\n',(dimensions.D_spring + dimensions.d_spring + 0.2)*1.15);
+    fclose(lock_latch);
+
+    %-------- LOCK DIMENSIONS - SPRING --------
+    lock_spring_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'lock_spring.txt');
+    lock_spring = fopen(lock_spring_filePath, 'w');
+    if lock_spring == -1
+        error('Could not create lock_spring.txt');
+    end
+
+    fprintf(lock_spring, '"spring_diameter"=%.2f\n',dimensions.D_spring);
+    fprintf(lock_spring, '"coil_diameter"=%.2f\n',dimensions.d_spring);
+    fprintf(lock_spring, '"number_of_coils"=%.0f\n',dimensions.Nt);
+    fprintf(lock_spring, '"spring_length"=%.0f\n',dimensions.Lf-Lock.y_pre*1000);
+    fclose(lock_spring);
+
+    spring_screw_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'lock_spring_screw.txt');
+    spring_screw = fopen(spring_screw_filePath, 'w');
+    if spring_screw == -1
+        error('Could not create lock_spring_screw.txt');
+    end
+
+    fprintf(spring_screw, '"inner_diameter"=%.2f\n',dimensions.D_spring + dimensions.d_spring + 0.2);
+    fprintf(spring_screw, '"head_diameter"=%.2f\n',(dimensions.D_spring + dimensions.d_spring + 0.2)*1.1);
+    fclose(spring_screw);
 
     %{
     %-------- HYDRAULIC PIN DIMENSIONS - TOP --------
@@ -366,52 +463,6 @@ function exportDimensions(dimensions)
     fprintf(hydrpin, '"diameter"=%.2f\n',);
     fprintf(hydrpin, '"length"=%.2f\n',);
     fclose(hydrpin);
-
-    %-------- LOCK DIMENSIONS - PIN --------
-    lock_pin_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'lock_pin.txt');
-    lock_pin = fopen(lock_pin_filePath, 'w');
-    if lock_pin == -1
-        error('Could not create lock_pin.txt');
-    end
-
-    fprintf(lock_pin, '"diameter"=%.2f\n',);
-    fprintf(lock_pin, '"length"=%.2f\n',);
-    fprintf(lock_pin, '"handle_keys"=%.2f\n',);
-    fprintf(lock_pin, '"latch_keys_width"=%.2f\n',);
-    fclose(lock_pin);
-
-    %-------- LOCK DIMENSIONS - HANDLE --------
-    lock_handle_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'lock_handle.txt');
-    lock_handle = fopen(lock_handle_filePath, 'w');
-    if lock_handle == -1
-        error('Could not create lock_handle.txt');
-    end
-
-    fprintf(lock_handle, '"length"=%.2f\n',);
-    fprintf(lock_handle, '"thickness"=%.2f\n',);
-    fprintf(lock_handle, '"bore_diameter"=%.2f\n',);
-    fprintf(lock_handle, '"handle_keys"=%.2f\n',);
-    fclose(lock_handle);
-
-    %-------- LOCK DIMENSIONS - LATCH --------
-    lock_latch_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'lock_latch.txt');
-    lock_latch = fopen(lock_latch_filePath, 'w');
-    if lock_latch == -1
-        error('Could not create lock_latch.txt');
-    end
-
-    fprintf(lock_latch, '"length"=%.2f\n',);
-    fprintf(lock_latch, '"width"=%.2f\n',);
-    fprintf(lock_latch, '"thickness"=%.2f\n',);
-    fprintf(lock_latch, '"slot_diameter"=%.2f\n',);
-    fprintf(lock_latch, '"slot_length"=%.2f\n',);
-    fprintf(lock_latch, '"latch_keys_width"=%.2f\n',);
-    fprintf(lock_latch, '"latch_keys_length"=%.2f\n',);
-    fprintf(lock_latch, '"spring_cavity_diameter"=%.2f\n',);
-    fclose(lock_latch);
-
-    %-------- LOCK DIMENSIONS - SPRING --------
-
     %}
 end
 
@@ -593,7 +644,7 @@ function results = getResults(BW, H)
     m_ll = JointReactionForce.getMl(BW);
     d_f = JointReactionForce.getLl(H) + 0.5*JointReactionForce.getLf(H);
     d_ll = 0.433*JointReactionForce.getLl(H);
-    lock_dimensions = Lock.LockDim(log, m_f, m_ll, d_f, d_ll, M_k, w_b);
+    lock_dims = Lock.LockDim(log, m_f, m_ll, d_f, d_ll, M_k, w_b);
 
     % get pyramid adapter safety factors
     fprintf(log, '-------- PYRAMID ADAPTER ANALYSIS --------:\n\n');
@@ -621,6 +672,17 @@ function results = getResults(BW, H)
     results.a = legDimensions.a*1000;
     results.b = t_frame*1000;
     results.t_lp = t_frame*1000;
+    results.lock_w_key = lock_dims.w_key*1000;
+    results.lock_d_pin = lock_dims.d_pin*1000;
+    results.t_latch = lock_dims.t_latch*1000;
+    results.Lf = lock_dims.Lf*1000;
+    results.l_latch = lock_dims.l_latch*1000;
+    results.w_latch = lock_dims.w_latch*1000;
+    results.l_handle = lock_dims.l_handle*1000;
+    results.w_handle = lock_dims.w_handle*1000;
+    results.D_spring = lock_dims.D_spring*1000;
+    results.d_spring = lock_dims.d_spring*1000;
+    results.Nt = lock_dims.Nt;    
     results.d_valve = valve.d_best_mm;
     results.Q = valve.Q_Lmin;
     results.Cv = valve.Cv;
