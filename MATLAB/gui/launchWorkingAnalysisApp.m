@@ -31,6 +31,34 @@ function app = launchWorkingAnalysisApp()
             end
         end
 
+        % Add logo to the first tab only (top-right corner).
+        logoPath = fullfile(rootDir, 'gui', 'knee_logo.png');
+        if isfile(logoPath)
+            logoW = min(190, max(110, round(0.15 * figW)));
+            logoH = 84;
+            try
+                info = imfinfo(logoPath);
+                logoH = max(28, round(logoW * (info.Height / info.Width)));
+            catch
+                % Keep fallback height when image metadata is unavailable.
+            end
+
+            tabHeaderH = 34;
+            tabContentH = max(120, figH - tabHeaderH);
+            margin = 6;
+            logoX = 828;
+            logoY = max(margin, tabContentH - logoH - margin);
+
+            logoImg = uiimage(tabR, ...
+                'Position', [logoX logoY logoW logoH], ...
+                'ImageSource', logoPath, ...
+                'Tag', 'TopRightLogo');
+
+            if isprop(logoImg, 'ScaleMethod')
+                logoImg.ScaleMethod = 'fit';
+            end
+        end
+
         labelW = max(100, figW - 60);
         labelFontSize = 24;
         labelH = 44;
@@ -50,5 +78,7 @@ function app = launchWorkingAnalysisApp()
             'FontSize', labelFontSize, ...
             'FontWeight', 'bold', ...
             'Text', 'Press Generate to run analysis and load the log file.');
+
+        tg.SelectedTab = tabR;
     end
 end
