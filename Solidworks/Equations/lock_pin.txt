@@ -1,8 +1,8 @@
-"pin_diameter"=8.17
-"pin_length"=26.75
-"key_width"=2.04
-"key_length"=1.02
-"key_length_with_hump"=2.02
-"key_width_with_offset"=4.04
+"pin_diameter"=11.16
+"pin_length"=27.75
+"key_width"=2.79
+"key_length"=1.39
+"key_length_with_hump"=2.39
+"key_width_with_offset"=4.79
 "key_thickness"=11.25
-"screw_diameter"=2.72
+"screw_diameter"=3.72

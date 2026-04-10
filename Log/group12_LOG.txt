@@ -2,91 +2,169 @@
 /               ANALYSIS LOG            /
 /***************************************/
 
-Patient body weight: 30.00 kg
-Patient height: 1.00 m
+Patient body weight: 80.00 kg
+Patient height: 1.20 m
 
 Maximum Joint Reaction Force and Moment:
-JRF = 306.80 N
-JRF_x = -33.47 N
-JRF_y = -304.97 N
-JRM = 19.68 Nm
+JRF = 818.13 N
+JRF_x = -89.25 N
+JRF_y = -813.24 N
+JRM = 52.69 Nm
 
 -------- SHAFT ANALYSIS --------:
 
 Size 1:
 Limiting Shaft Diameters:
-D_s (fatigue loading) = 14.80 mm
-D_s (bending stress) = 5.74 mm
-d_s (fatigue loading) = 15.99 mm
-d_s (shear loading) = 12.19 mm
-Limiting d_s = 15.99 mm
-Limiting D_s = 14.80 mm
-Journal bearing for inner diameter of 15.99mm:
-ID: 16.00mm
-OD: 18.00mm
-Length: 12.00mm
-Flange thickness: 1.00mm
-Flange OD: 24.00mm
-Part no. 6659K263
+D_s (fatigue loading) = 20.54 mm
+D_s (bending stress) = 7.96 mm
+d_s (fatigue loading) = 22.20 mm
+d_s (shear loading) = 16.90 mm
+Limiting d_s = 22.20 mm
+Limiting D_s = 20.54 mm
+Journal bearing for inner diameter of 22.20mm:
+ID: 25.00mm
+OD: 30.00mm
+Length: 20.00mm
+Flange thickness: 2.50mm
+Flange OD: 35.00mm
+Part no. 6659K53
 
 Adjusted shaft dimensions after journal bearing selection:
-D_s: 20.00 mm
-d_s: 16.00 mm
+D_s: 29.00 mm
+d_s: 25.00 mm
 L_s: 60.00 mm
-l_s: 96.00 mm
+l_s: 112.00 mm
 
-Torsional deflection for D_s=20.00mm L_s=60.00mm d_s=16.00mm l_s=36.00mm: theta = 0.14 degrees
+Torsional deflection for D_s=29.00mm L_s=60.00mm d_s=25.00mm l_s=52.00mm: theta = 0.09 degrees
+
+Shaft diameter and length sizes do not match.
+
+Size 2:
+Limiting Shaft Diameters:
+D_s (fatigue loading) = 20.55 mm
+D_s (bending stress) = 8.02 mm
+d_s (fatigue loading) = 22.20 mm
+d_s (shear loading) = 16.90 mm
+Limiting d_s = 22.20 mm
+Limiting D_s = 20.55 mm
+Journal bearing for inner diameter of 22.20mm:
+ID: 25.00mm
+OD: 30.00mm
+Length: 20.00mm
+Flange thickness: 2.50mm
+Flange OD: 35.00mm
+Part no. 6659K53
+
+Adjusted shaft dimensions after journal bearing selection:
+D_s: 29.00 mm
+d_s: 25.00 mm
+L_s: 61.50 mm
+l_s: 113.50 mm
+
+Torsional deflection for D_s=29.00mm L_s=61.50mm d_s=25.00mm l_s=52.00mm: theta = 0.09 degrees
+
+Shaft diameter and length sizes do not match.
+
+Size 3:
+Limiting Shaft Diameters:
+D_s (fatigue loading) = 20.57 mm
+D_s (bending stress) = 8.09 mm
+d_s (fatigue loading) = 22.20 mm
+d_s (shear loading) = 16.90 mm
+Limiting d_s = 22.20 mm
+Limiting D_s = 20.57 mm
+Journal bearing for inner diameter of 22.20mm:
+ID: 25.00mm
+OD: 30.00mm
+Length: 20.00mm
+Flange thickness: 2.50mm
+Flange OD: 35.00mm
+Part no. 6659K53
+
+Adjusted shaft dimensions after journal bearing selection:
+D_s: 29.00 mm
+d_s: 25.00 mm
+L_s: 63.00 mm
+l_s: 115.00 mm
+
+Torsional deflection for D_s=29.00mm L_s=63.00mm d_s=25.00mm l_s=52.00mm: theta = 0.09 degrees
+
+Shaft diameter and length sizes do not match.
+
+Size 4:
+Limiting Shaft Diameters:
+D_s (fatigue loading) = 20.57 mm
+D_s (bending stress) = 8.09 mm
+d_s (fatigue loading) = 22.20 mm
+d_s (shear loading) = 16.90 mm
+Limiting d_s = 22.20 mm
+Limiting D_s = 20.57 mm
+Journal bearing for inner diameter of 22.20mm:
+ID: 25.00mm
+OD: 30.00mm
+Length: 20.00mm
+Flange thickness: 2.50mm
+Flange OD: 35.00mm
+Part no. 6659K53
+
+Adjusted shaft dimensions after journal bearing selection:
+D_s: 29.00 mm
+d_s: 25.00 mm
+L_s: 63.00 mm
+l_s: 115.00 mm
+
+Torsional deflection for D_s=29.00mm L_s=63.00mm d_s=25.00mm l_s=52.00mm: theta = 0.09 degrees
 
 Shaft diameter and length sizes converged!
 
 Final adjusted shaft dimensions:
-D_s: 22.00 mm
-d_s: 18.00 mm
-L_s: 60.00 mm
-l_s: 96.00 mm
+D_s: 29.00 mm
+d_s: 25.00 mm
+L_s: 63.00 mm
+l_s: 115.00 mm
 
-Width of key: 5.50 mm
+Width of key: 7.25 mm
 
 -------- SELECT BALL SIZE FOR CORRESPONDING SHAFT SIZE --------:
 
-Ball radius: 40.00 mm
-Ball width: 60.00 mm
+Ball radius: 47.50 mm
+Ball width: 63.00 mm
 
 -------- FRAME ANALYSIS --------:
 
 Limiting Support Thicknesses:
 Buckling
-Pcr = 306.80 N
-H_su = 19.93 mm
-t_su (buckling): 0.31 mm
+Pcr = 818.13 N
+H_su = 20.89 mm
+t_su (buckling): 0.37 mm
 Shear
 tau_allowed: 80040000.00 Pa
-t_su (shear): 0.16 mm
+t_su (shear): 0.26 mm
 Bending
 sigma_allowed: 138000000.00 Pa
-t_su (bending XY): 0.82 mm
-t_su (bending YZ): 2.72 mm
+t_su (bending XY): 0.83 mm
+t_su (bending YZ): 3.52 mm
 
 Limiting Leg Dimensions:
 For a leg width, a = 15.00 mm
 Buckling
-Pcr: 153.40 N
-I_allowed: 0.81 mm^4
-b: 0.001155 mm
+Pcr: 409.06 N
+I_allowed: 2.17 mm^4
+b: 0.003081 mm
 Shear
 tau_allowed: 80040000.00 Pa
-b: 0.047990 mm
+b: 0.128317 mm
 Bending
 sigma_allowed: 138000000.00 Pa
-I_allowed: 8736.37 mm^4
-b: 0.084666 mm
-Final limiting b: 0.084666 mm
+I_allowed: 28382.95 mm^4
+b: 0.179602 mm
+Final limiting b: 0.179602 mm
 
 Lip Thickness:
-F_lp: 798.82 N
-t_lp: 0.10 mm
+F_lp: 1927.31 N
+t_lp: 0.22 mm
 
-Final frame thickness: t_frame = 3.00 mm
+Final frame thickness: t_frame = 4.00 mm
 
 -------- HYDRAULIC UNIT ANALYSIS --------:
 
@@ -107,8 +185,8 @@ Cylinder max length:     66.32 mm
 
 -------- HYDRAULIC PIN ANALYSIS --------:
 
-Pin diameter: 10.00 mm
-Upper pin length: 60.00 mm
+Pin diameter: 12.00 mm
+Upper pin length: 63.00 mm
 Lower pin length: 19.17 mm
 
 -------- LOCK ANALYSIS --------:
@@ -118,45 +196,45 @@ Minimum set safety factor: 4
 Limiting lock dimensions:
 Torque to engage/disengage lock: 0.378 Nm
 Spring constant: 2100.00 N/m
-Maximum force on the latch: 328.01 N
+Maximum force on the latch: 836.29 N
 Maximum allowable shear stress: 39813000.00 Pa
 Maximum allowable bending stress: 69000000.00 Pa
 Set latch thickness: 15.00 mm
-Minimum width of pin keys: 0.26 mm
-Limiting pin diameter due to shear: 3.24 mm
+Minimum width of pin keys: 0.69 mm
+Limiting pin diameter due to shear: 5.17 mm
 Limiting pin diameter due to torsion: 3.64 mm
-Limiting pin diameter due to bending: 8.17 mm
-Minimum pin diameter: 8.17 mm
+Limiting pin diameter due to bending: 11.16 mm
+Minimum pin diameter: 11.16 mm
 
 Spring dimensions:
-D (mean spring diameter): 6.13 mm
+D (mean spring diameter): 8.37 mm
 d (wire diameter): 1.00 mm
-C:    6.13
+C:    8.37
 C within acceptable bounds of 4-12
-Ks: 1.08
-Kw: 1.25
+Ks: 1.06
+Kw: 1.18
 Number of active coils, N: 1
 Total number of coils, N_t: 3
 Solid length of the spring, L_s: 3.00 mm
 Static loading condition:
 Allowable static stress: 990000000.00 Pa
-Calculated static stress: 212576321.15 Pa
+Calculated static stress: 284530837.29 Pa
 Static condition is met!
 
 Spring safety factors:
-Goodman, n = 5.69
-Langer, n = 4.76
+Goodman, n = 4.41
+Langer, n = 3.70
 
 Final lock dimensions:
-Width of pin keys, w_key: 2.04 mm
-Pin diameter, d_pin: 8.17 mm
+Width of pin keys, w_key: 2.79 mm
+Pin diameter, d_pin: 11.16 mm
 Latch thickness, t_latch: 15.00 mm
 Free length of spring: 11.00 mm
-Length of the latch, l_latch: 12.92 mm
-Width of the latch, w_latch: 16.33 mm
+Length of the latch, l_latch: 11.42 mm
+Width of the latch, w_latch: 22.31 mm
 Length of the handle, l_handle: 30.00 mm
-Width of the handle, w_handle: 16.33 mm
-Spring diameter, D_spring: 6.13 mm
+Width of the handle, w_handle: 22.31 mm
+Spring diameter, D_spring: 8.37 mm
 Coil diameter, d_spring: 1.00 mm
 Number of coils, Nt: 3 mm
 
