@@ -92,7 +92,7 @@ methods (Static)
 
     % ========== UPPER ADAPTER ANALYSIS ==========
     
-    % Thread Stripping Analysis (Section 4.4.4)
+    % Thread Stripping Analysis
     % Shear stress in engaged threads at the ball neck connection
     % tau_s = F_res / A_s_total
     function [tau_s, n_strip, pass] = analyzeThreadStripping()
@@ -102,14 +102,14 @@ methods (Static)
         pass = (tau_s <= tau_allow);
     end
     
-    % Pyramid Boss Axial Compression (Section 4.4.5)
+    % Pyramid Boss Axial Compression
     % Vertical load causes direct axial stress on the hollow square pyramid boss
     function [sigma_axial, n_axial] = analyzeUpperAxialCompression()
         sigma_axial = PyramidAdapter.F_v / PyramidAdapter.A_pyr_upper; % [MPa]
         n_axial = (PyramidAdapter.sigma_y / PyramidAdapter.n_safety) / sigma_axial;
     end
     
-    % Pyramid Boss Bending (Section 4.4.5)
+    % Pyramid Boss Bending
     % Eccentricity e = 1.51 mm between pyramid boss centroid and ball centroid
     % creates bending moment M = F_v × e
     function [sigma_bending, n_bending] = analyzeUpperBending()
@@ -118,7 +118,7 @@ methods (Static)
         n_bending = (PyramidAdapter.sigma_y / PyramidAdapter.n_safety) / sigma_bending;
     end
     
-    % Combined Stress at Upper Pyramid Boss (Section 4.4.6)
+    % Combined Stress at Upper Pyramid Boss
     % Von Mises criterion: sigma_e = sqrt(sigma_n^2 + 3*tau_AP^2)
     function [sigma_total, tau_AP, sigma_vm, n_vm] = analyzeUpperCombinedStress()
         % Normal stress from axial compression and bending
@@ -137,7 +137,7 @@ methods (Static)
     
     % ========== LOWER ADAPTER ANALYSIS ==========
     
-    % Bolt Shear Analysis (Section 4.5.4)
+    % Bolt Shear Analysis
     % Resultant force shared equally among four bolts
     function [tau_bolt, n_bolt, pass] = analyzeBoltShear()
         tau_bolt = PyramidAdapter.F_bolt / PyramidAdapter.A_bolt; % [MPa]
@@ -146,7 +146,7 @@ methods (Static)
         pass = (tau_bolt <= tau_allow);
     end
     
-    % Bolt Bearing Stress Analysis (Section 4.5.5)
+    % Bolt Bearing Stress Analysis
     % Bearing area per bolt = d_bolt × t_plate
     % Allowable bearing stress = 1.5 × sigma_y
     function [sigma_bearing, n_bearing, pass] = analyzeBoltBearing()
@@ -156,14 +156,14 @@ methods (Static)
         pass = (sigma_bearing <= sigma_bearing_allow);
     end
     
-    % Pyramid Boss Axial Compression (Lower Adapter, Section 4.5.6)
+    % Pyramid Boss Axial Compression (Lower Adapter)
     % Same cross-section as upper adapter
     function [sigma_axial, n_axial] = analyzeLowerAxialCompression()
         sigma_axial = PyramidAdapter.F_v / PyramidAdapter.A_pyr_lower; % [MPa]
         n_axial = (PyramidAdapter.sigma_y / PyramidAdapter.n_safety) / sigma_axial;
     end
     
-    % Combined Stress at Lower Pyramid Boss (Section 4.5.7)
+    % Combined Stress at Lower Pyramid Boss
     % No bending contribution (e = 0), only axial and AP shear
     % sigma_e = sqrt(sigma_axial^2 + 3*tau_AP^2)
     function [sigma_axial, tau_AP, sigma_vm, n_vm] = analyzeLowerCombinedStress()

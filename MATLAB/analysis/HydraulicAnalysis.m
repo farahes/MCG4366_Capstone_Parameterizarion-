@@ -3,19 +3,19 @@
 % MCG4366 Group 12
 %
 % Sizes all components of the hydraulic damping unit:
-%   1.  Maximum axial load on the cylinder             (Eq. 65)
-%   2.  Maximum knee angular velocity & piston vel     (Eq. 66)
-%   3.  Minimum cylinder bore diameter                 (Eq. 67)
-%   4.  Required pressure drop verification            (Eq. 68)
-%   5.  Maximum volumetric flow rate                   (Eq. 69)
+%   1.  Maximum axial load on the cylinder
+%   2.  Maximum knee angular velocity & piston vel
+%   3.  Minimum cylinder bore diameter
+%   4.  Required pressure drop verification
+%   5.  Maximum volumetric flow rate
 %   6.  Silicone oil density at 30 °C                 (thermal expansion)
-%   7.  Silicone oil dynamic viscosity at 30 °C       (Eq. 70)
-%   8.  Hagen-Poiseuille restriction length            (Eq. 71)
+%   7.  Silicone oil dynamic viscosity at 30 °C
+%   8.  Hagen-Poiseuille restriction length
 %   9.  Minimum axial needle force (servo sizing)
 %  10.  Knee flexion range from Winter's gait data
 %  11.  Required cylinder piston stroke
 %
-% All derivations follow Section 5.1 and Appendix C/E of the design report.
+% All derivations follow the project analysis assumptions.
 % =========================================================
 
 classdef HydraulicAnalysis
@@ -23,24 +23,24 @@ classdef HydraulicAnalysis
 properties (Constant)
 
     % ---- USER & GEOMETRY ----
-    m_user      = 70;           % Maximum user mass [kg]  (Table 13)
+    m_user      = 70;           % Maximum user mass [kg]
     g           = 9.81;         % Gravitational acceleration [m/s^2]
-    r_ball      = 0.04;         % Lever arm: knee axis to damper line of action [m]  (Table 13)
+    r_ball      = 0.04;         % Lever arm: knee axis to damper line of action [m]
 
     % ---- KINEMATICS ----
     % Maximum knee angular velocity during gait at ~1.0-1.19 m/s walking speed.
-    % Source: Winter's gait data (ref [33] in working analysis report).
+    % Source: Winter's gait data.
     theta_dot_max_degs = 357.90; % [deg/s]
 
     % ---- CYLINDER ----
     % delta_p_allow chosen as 8 MPa: conservative upper bound within the
-    % 3-10 MPa range reported for hydraulic prosthetic knees (refs [34][35][36] in working analysis report).
+    % 3-10 MPa range reported for hydraulic prosthetic knees.
     delta_p_allow = 8e6;        % Maximum allowable cylinder pressure [Pa]
     D_standard    = 0.020;      % Selected standard cylinder bore: 20 mm (rounded up from D_min)
 
-    % ---- SILICONE OIL (Polydimethylsiloxane, 350 cSt grade, ref [37] in working analysis report) ----
+    % ---- SILICONE OIL (Polydimethylsiloxane, 350 cSt grade) ----
     % 350 cSt selected as medium-viscosity grade balancing damping performance,
-    % temperature sensitivity, and seal durability (300-500 cSt range, Appendix E).
+    % temperature sensitivity, and seal durability (300-500 cSt range).
     rho_25  = 970;              % Fluid density at 25 °C [kg/m^3]
     nu_s    = 350e-6;           % Kinematic viscosity at 30 °C [m^2/s]  (nu_30 ≈ nu_25 assumed)
     beta    = 0.8e-3;           % Volumetric thermal expansion coefficient [1/°C]
@@ -197,7 +197,7 @@ end
 % =========================================================
 %  STEP 8 — HAGEN-POISEUILLE RESTRICTION CHANNEL LENGTH
 % =========================================================
-% Full Hagen-Poiseuille derivation (Appendix C):
+% Full Hagen-Poiseuille derivation:
 %   Velocity profile: u(r) = (-1/(4*mu)) * (dp/dz) * (R^2 - r^2)
 %   Integrating over the cross-section: Q = -pi*R^4/(8*mu) * dp/dz
 %   Substituting dp/dz = -delta_p/L and R = d/2, solved for L:

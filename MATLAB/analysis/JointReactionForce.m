@@ -23,7 +23,7 @@ methods (Static)
 
 % -------- ANTHROPOMETRIC DATA --------
 
-% import Winter's Appendix data
+% import Winter gait data
 function footData = getFootData()
     persistent footTable
     if isempty(footTable)

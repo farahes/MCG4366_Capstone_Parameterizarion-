@@ -1,1 +1,1 @@
-"case_width"=43.00
+"case_width"=38.00
