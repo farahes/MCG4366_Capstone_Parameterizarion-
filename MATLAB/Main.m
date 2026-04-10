@@ -205,7 +205,7 @@ end
 function exportDimensions(dimensions)
     
     basePath = fileparts(mfilename('fullpath'));
-    eqDir = fullfile(basePath, 'Solidworks', 'Equations');
+    eqDir = fullfile(basePath, '..', 'Solidworks', 'Equations');
     if ~isfolder(eqDir)
         [ok, msg] = mkdir(eqDir);
         if ~ok

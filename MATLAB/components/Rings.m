@@ -85,7 +85,7 @@ methods (Static)
 
         % create and export dimensions to text file
         basePath = fileparts(mfilename('fullpath'));
-        eqDir = fullfile(basePath, '..', 'Solidworks', 'Equations');
+        eqDir = fullfile(basePath, '..', '..', 'Solidworks', 'Equations');
         if ~isfolder(eqDir)
             [ok, msg] = mkdir(eqDir);
             if ~ok
