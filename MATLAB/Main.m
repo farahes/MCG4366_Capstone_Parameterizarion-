@@ -94,6 +94,21 @@ properties (Constant)
 
 end
     
+methods
+
+% Shortcut launcher: calling Main directly opens the GUI app.
+function obj = Main()
+    rootDir = fileparts(which('Main'));
+    if isempty(rootDir)
+        rootDir = fileparts(mfilename('fullpath'));
+    end
+    addpath(fullfile(rootDir, 'gui'));
+
+    launchWorkingAnalysisApp();
+end
+
+end
+
 methods (Static)
 
 % Shear yield stress via Von Mises (distortion-energy) criterion: Ssy ≈ 0.577*Sy.
