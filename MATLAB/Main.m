@@ -560,7 +560,6 @@ function results = getResults(BW, H)
 
     % iterate until shaft length and diameter converge to the same size
     while (true)
-        fprintf(log, 'Size %i:\n', sz);
         % get limiting shaft dimension
         rawDiameter = ShaftAnalysis.getShaftDiameter( ...
             log, ...
@@ -574,9 +573,21 @@ function results = getResults(BW, H)
             Main.Shaft_SZ(sz,1) ...
             );
 
+        % round up to the nearest shaft size
+        while (true)
+            if (rawDiameter.d < Main.Shaft_SZ(sz,3) && rawDiameter.D < Main.Shaft_SZ(sz,2))
+                sized_d = Main.Shaft_SZ(sz,3);
+                break;
+            else
+                sz = sz + 1;
+            end
+        end
+
+        fprintf(log, 'These diameters correspond to size %i:\n\n', sz);
+
         % get journal bearing specs
-        fprintf(log, 'Journal bearing for inner diameter of %.2fmm:\n', rawDiameter.d*1000);
-        JB = ShaftAnalysis.getJB(F_k, rawDiameter.d);
+        fprintf(log, 'Journal bearing for inner diameter of %.2fmm:\n', sized_d*1000);
+        JB = ShaftAnalysis.getJB(F_k, sized_d);
         fprintf(log, 'ID: %.2fmm\n', JB.id*1000);
         fprintf(log, 'OD: %.2fmm\n', JB.od*1000);
         fprintf(log, 'Length: %.2fmm\n', JB.l*1000);
@@ -599,7 +610,7 @@ function results = getResults(BW, H)
             D_s = D_s + 0.001;
             d_s = d_s + 0.001;
             JB = ShaftAnalysis.getJB(F_k, d_s);
-            adjDiameter = ShaftAnalysis.getFinalShaftDimensions(JB);
+            adjDiameter = ShaftAnalysis.getFinalShaftDimensions(JB, Main.Shaft_SZ(sz,1));
         end
    
         % check if diameter size is larger than the length size

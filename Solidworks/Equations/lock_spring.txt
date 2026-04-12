@@ -1,4 +1,4 @@
-"spring_diameter"=6.13
+"spring_diameter"=8.72
 "coil_diameter"=1.00
 "number_of_coils"=3
 "spring_length"=7

@@ -1,5 +1,5 @@
-"pin_diameter"=10.00
-"upper_pin_length"=60.00
+"pin_diameter"=14.00
+"upper_pin_length"=63.00
 "lower_pin_length"=33.00
-"pin_head_diameter"=14.00
-"pin_screw_diameter"=6.00
+"pin_head_diameter"=19.60
+"pin_screw_diameter"=8.40

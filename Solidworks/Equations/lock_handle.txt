@@ -1,7 +1,7 @@
 "handle_length"=30.00
-"handle_width"=16.33
-"extrude_diameter"=13.17
-"key_width"=2.04
-"key_length"=1.02
-"bore_diameter"=8.37
-"screw_diameter"=2.72
+"handle_width"=23.26
+"extrude_diameter"=16.63
+"key_width"=2.91
+"key_length"=1.45
+"bore_diameter"=11.83
+"screw_diameter"=3.88
