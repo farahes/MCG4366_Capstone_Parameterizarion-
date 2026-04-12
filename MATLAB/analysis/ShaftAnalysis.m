@@ -115,7 +115,7 @@ end
 % The larger value from each pair of checks is returned as the required diameter.
 function shaftDiameter = getShaftDiameter(log, n, Su, Sy, Ssy, JRFx, JRFy, M_k, L_s)
 
-    fprintf(log, 'Limiting Shaft Diameters:\n');
+    fprintf(log, 'Limiting Shaft Diameters for n = %.2f:\n', n);
 
     % Determine limiting D_s (large-diameter section at keyway/bending region)
     % Fatigue

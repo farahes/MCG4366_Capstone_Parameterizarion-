@@ -1,5 +1,5 @@
-"pin_bore"=10.20
-"top_outer_diameter"=16.00
-"bottom_height"=16.50
-"bottom_bore_height"=8.50
+"pin_bore"=14.20
+"top_outer_diameter"=22.40
+"bottom_height"=23.10
+"bottom_bore_height"=11.90
 "valve_diameter"=1.17

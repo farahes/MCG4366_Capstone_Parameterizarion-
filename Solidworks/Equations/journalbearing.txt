@@ -1,5 +1,5 @@
-"inner_diameter"=16.00
-"outer_diameter"=18.00
-"length"=12.00
-"flange_thickness"=1.00
-"flange_diameter"=24.00
+"inner_diameter"=25.00
+"outer_diameter"=30.00
+"length"=20.00
+"flange_thickness"=2.50
+"flange_diameter"=35.00
