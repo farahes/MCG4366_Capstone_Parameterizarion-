@@ -109,7 +109,7 @@ Cylinder max length:     66.32 mm
 
 Pin diameter: 10.00 mm
 Upper pin length: 60.00 mm
-Lower pin length: 19.17 mm
+Lower pin length: 33.00 mm
 
 -------- LOCK ANALYSIS --------:
 

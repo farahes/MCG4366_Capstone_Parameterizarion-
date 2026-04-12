@@ -6,7 +6,8 @@
 "shaft_extrude"=37.00
 "adapter_slice"=32.50
 "hydraulic_pin_bore"=10.50
-"hydraulic_pin_radius"=30.00
+"hydraulic_pin_radius"=28.00
+"hydraulic_pin_countersink_diameter"=14.50
 "hydraulic_slot_width"=12.00
 "hydraulic_slot_diameter"=16.50
 "hydraulic_slot_half_diameter"=13.50

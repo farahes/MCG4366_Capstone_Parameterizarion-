@@ -9,7 +9,12 @@
 "support_diameter"=24.00
 "leg_thickness"=3.00
 "leg_width"=15.00
-"hydraulic_pin_bore"=10.00
+"hydraulic_path_length"=60.00
+"hydraulic_pin_length"=33.00
+"hydraulic_pin_bore"=10.20
+"hydraulic_pin_outer_diameter"=16.00
+"hydraulic_pin_connection_height"=16.50
+"hydraulic_pin_bore_height"=8.50
 "latch_length"=13.12
 "latch_width"=16.53
 "lock_extrusion"=16.33
