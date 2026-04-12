@@ -23,7 +23,6 @@ properties (Constant)
 
     phi1 = deg2rad(100);   % [rad], angle between the front legs and back legs
     phi2 = deg2rad(55); % [rad], angle between front leg and the lip
-    L_fr = 0.12; % [m], length of the legs
     a = 0.015;  % [m], width of the legs set to 15mm
 
 end
@@ -124,8 +123,8 @@ function Pcr = getPcrfr(JRF, n)
     Pcr = n*(JRF/4);
 end
 
-function I_allowed = getIAllowed(Pcr, E)
-    I_allowed = Pcr*FrameAnalysis.L_fr^2/(4*E*pi()^2);
+function I_allowed = getIAllowed(Pcr, E, L_fr)
+    I_allowed = Pcr*L_fr^2/(4*E*pi()^2);
 end
 
 % Function for I (buckling)
@@ -177,8 +176,8 @@ function legDim = getLegDimsShear(JRF, tau_allowed)
 end
 
 % BENDING
-function M_max = getMmaxBending(JRF)
-    M_max = JRF*FrameAnalysis.L_fr;
+function M_max = getMmaxBending(JRF, L_fr)
+    M_max = JRF*L_fr;
 end
 
 function I_allowed = getIAllowedBending(M_max, W_su, sigma_allowed)
@@ -227,7 +226,7 @@ function legDim = getLegDimsBending(I_allowed, W_su)
 end
 
 % REQUIRED LEG DIMENSIONS
-function legDimensions = getLegDimensions(log, n, JRF, E, Sy, Ssy, d_isu, r_b)
+function legDimensions = getLegDimensions(log, n, JRF, E, Sy, Ssy, d_isu, r_b, L_fr)
 
     fprintf(log, 'Limiting Leg Dimensions:\n');
 
@@ -240,7 +239,7 @@ function legDimensions = getLegDimensions(log, n, JRF, E, Sy, Ssy, d_isu, r_b)
     % Buckling
     fprintf(log, 'Buckling\n');
     Pcr1 = FrameAnalysis.getPcrfr(JRF, n);
-    I_allowed1 = FrameAnalysis.getIAllowed(Pcr1, E);
+    I_allowed1 = FrameAnalysis.getIAllowed(Pcr1, E, L_fr);
     Dim1 = FrameAnalysis.getLegDimsBuckling(I_allowed1);
     fprintf(log, 'Pcr: %.2f N\n', Pcr1);
     fprintf(log, 'I_allowed: %.2f mm^4\n', I_allowed1*1000000000000);
@@ -253,7 +252,7 @@ function legDimensions = getLegDimensions(log, n, JRF, E, Sy, Ssy, d_isu, r_b)
     fprintf(log, 'b: %.6f mm\n', Dim2.b*1000);
     % Bending
     fprintf(log, 'Bending\n');
-    M_max3 = FrameAnalysis.getMmaxBending(JRF);
+    M_max3 = FrameAnalysis.getMmaxBending(JRF, L_fr);
     sigma_allowed3 = FrameAnalysis.getSigma(Sy, n);
     I_allowed3 = FrameAnalysis.getIAllowedBending(M_max3, W_su, sigma_allowed3);
     Dim3 = FrameAnalysis.getLegDimsBending(I_allowed3, W_su);

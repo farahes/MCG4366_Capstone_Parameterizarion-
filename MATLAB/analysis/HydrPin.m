@@ -88,7 +88,7 @@ methods (Static)
         % the lower pin will be supported by two supports on the base of
         % the frame
 
-        b_lower = (d_hydraulic + 0.004);    % 2 mm buffer of space on both sides of the hydraulic
+        b_lower = (0.75*d_hydraulic + 0.004);    % 2 mm buffer of space on both sides of the hydraulic
         a_lower = 0.007;    % set at 7 mm (CHANGEABLE)
 
         M_lower = (F/2)*((a_lower/2) + (b_lower/2));

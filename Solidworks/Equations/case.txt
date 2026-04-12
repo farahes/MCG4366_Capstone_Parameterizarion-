@@ -1,0 +1,15 @@
+"frame_outer_diameter"=86.50
+"case_width"=34.25
+"frame_leg_length"=130.00
+"shaft_extrude_diameter"=33.00
+"shaft_extrude_length"=15.00
+"support_diameter"=24.00
+"frame_inner_diameter"=80.50
+"frame_support_thickness"=3.00
+"latch_length"=13.12
+"latch_width"=16.53
+"lock_extrusion"=16.33
+"side_case_width"=35.76
+"rear_case_width"=38.00
+"frame_leg_width"=15.00
+"front_extrustion"=9.00

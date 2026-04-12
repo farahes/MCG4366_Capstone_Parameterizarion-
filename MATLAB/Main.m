@@ -75,22 +75,30 @@ properties (Constant)
 % =========================================================
 % Sizing is implemented to reduce cost and lead time to manufacture custom
 % sizes for each patient
+% arranged into a matrix where each row is a size (S/M/L/XL)
 
-    % STANDARD SHAFT SIZES
-    % arranged into a matrix where each row is a size (S/M/L/XL)
+    % SHAFT SIZES
     % each row is arranged like: [L_s D_s d_s]
     Shaft_SZ = [0.06 0.022 0.018; 0.0615 0.024 0.020; 0.063 0.026 0.022; 0.063 0.029 0.025]; % dimensions in [m]
 
     % RETAINGING RING LOCATION
     % from McMaster Carr catalogue for external retaining rings
-    % arranged into a matrix where each row is a size (S/M/L/XL)
     % each row is arranged like: [groove_d groove_w]
     Ring_SZ = [0.017 0.0013; 0.019 0.0013; 0.021 0.0013; 0.0239 0.0013]; % dimensions in [m]
 
-    % STANDARD BALL SIZES
-    % arranged into a matrix where each row is a size (S/M/L/XL)
+    % BALL SIZES
     % each row is arranged like: [diameter width]
-    Ball_SZ = [0.08 0.06; 0.082 0.0615; 0.084 0.063; 0.095 0.063]; % dimensions in [m]
+    Ball_SZ = [0.08 0.06; 0.082 0.0615; 0.084 0.063; 0.090 0.063]; % dimensions in [m]
+
+    % FRAME SIZES
+    % each row is arranged like: [length]
+    Frame_SZ = [0.120; 0.120; 0.127; 0.127]; % dimensions in [m]
+
+    % CASE SIZES
+    % the front extrusion width for the motor clearance varies based on the
+    % prosthetic size
+    % each row is arranged like: [extrusion]
+    Case_SZ = [0.009; 0.007; 0.002; 0.0015]; % dimensions in [m]
 
 end
     
@@ -285,7 +293,8 @@ function exportDimensions(dimensions)
     fprintf(ball, '"shaft_extrude"=%.2f\n',dimensions.D_s + 15);
     fprintf(ball, '"adapter_slice"=%.2f\n',dimensions.r_b*0.8125);
     fprintf(ball, '"hydraulic_pin_bore"=%.2f\n',dimensions.d_pin + 0.5);
-    fprintf(ball, '"hydraulic_pin_radius"=%.2f\n',dimensions.r_b*0.75);
+    fprintf(ball, '"hydraulic_pin_radius"=%.2f\n',dimensions.r_b*0.7);
+    fprintf(ball, '"hydraulic_pin_countersink_diameter"=%.2f\n',dimensions.d_pin*1.45);
     fprintf(ball, '"hydraulic_slot_width"=%.2f\n',(dimensions.D_cyl + 4)/2);    % divided by two since that's how it's defined in SW
     fprintf(ball, '"hydraulic_slot_diameter"=%.2f\n',dimensions.d_pin*1.65);
     fprintf(ball, '"hydraulic_slot_half_diameter"=%.2f\n',(dimensions.d_pin*1.65 + (dimensions.d_pin + 0.5))/2);
@@ -315,7 +324,12 @@ function exportDimensions(dimensions)
     fprintf(frame, '"support_diameter"=%.2f\n',dimensions.JBod/2 + 15);
     fprintf(frame, '"leg_thickness"=%.2f\n',dimensions.b);
     fprintf(frame, '"leg_width"=%.2f\n',dimensions.a);
-    fprintf(frame, '"hydraulic_pin_bore"=%.2f\n',dimensions.d_pin);
+    fprintf(frame, '"hydraulic_path_length"=%.2f\n',0.75*2*dimensions.r_b);
+    fprintf(frame, '"hydraulic_pin_length"=%.2f\n',dimensions.l_pin_lower);
+    fprintf(frame, '"hydraulic_pin_bore"=%.2f\n',dimensions.d_pin + 0.2);
+    fprintf(frame, '"hydraulic_pin_outer_diameter"=%.2f\n',dimensions.d_pin*1.60);
+    fprintf(frame, '"hydraulic_pin_connection_height"=%.2f\n',dimensions.d_pin*1.65);
+    fprintf(frame, '"hydraulic_pin_bore_height"=%.2f\n',dimensions.d_pin*1.65 - dimensions.d_pin*1.60/2);
     fprintf(frame, '"latch_length"=%.2f\n',dimensions.lock_l_latch+0.2);
     fprintf(frame, '"latch_width"=%.2f\n',dimensions.lock_w_latch+0.2);
     fprintf(frame, '"lock_extrusion"=%.2f\n',dimensions.lock_d_pin*2);
@@ -432,31 +446,60 @@ function exportDimensions(dimensions)
     fprintf(ecase_side, '"case_width"=%.2f\n', side_case_width);
     fclose(ecase_side);
 
-    %{
-    %-------- HYDRAULIC PIN DIMENSIONS - TOP --------
-    hydrpin_top_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'hydrpin.txt');
+    % OUTER CASE
+    case_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'case.txt');
+    case_file = fopen(case_filePath, 'w');
+    if case_file == -1
+        error('Could not create case.txt');
+    end
+
+    fprintf(case_file, '"frame_outer_diameter"=%.2f\n',2*dimensions.r_b + 2*dimensions.t_lp + 0.5);
+    fprintf(case_file, '"case_width"=%.2f\n',(dimensions.w_b + 2*dimensions.t_su + 2*1.00 + 0.5)/2);
+    fprintf(case_file, '"frame_leg_length"=%.2f\n',dimensions.L_fr+10);
+    fprintf(case_file, '"shaft_extrude_diameter"=%.2f\n',dimensions.JBod + 15);
+    fprintf(case_file, '"shaft_extrude_length"=%.2f\n',(dimensions.l_s - dimensions.L_s)/2 - dimensions.t_su);
+    fprintf(case_file, '"support_diameter"=%.2f\n',dimensions.JBod/2 + 15);
+    fprintf(case_file, '"frame_inner_diameter"=%.2f\n',2*dimensions.r_b + 0.5);
+    fprintf(case_file, '"frame_support_thickness"=%.2f\n',dimensions.t_su);
+    fprintf(case_file, '"latch_length"=%.2f\n',dimensions.lock_l_latch+0.2);
+    fprintf(case_file, '"latch_width"=%.2f\n',dimensions.lock_w_latch+0.2);
+    fprintf(case_file, '"lock_extrusion"=%.2f\n',dimensions.lock_d_pin*2);
+    fprintf(case_file, '"side_case_width"=%.2f\n', side_case_width);
+    fprintf(case_file, '"rear_case_width"=%.2f\n',dimensions.w_b + 2*dimensions.t_su + 2*1.00 - 2*dimensions.a);
+    fprintf(case_file, '"frame_leg_width"=%.2f\n',dimensions.a);
+    fprintf(case_file, '"front_extrustion"=%.2f\n',dimensions.case_extrude);
+    fclose(case_file);
+
+    %-------- HYDRAULIC DIMENSIONS --------
+
+    % PINS
+    hydrpin_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'hydrpin.txt');
     hydrpin = fopen(hydrpin_filePath, 'w');
     if hydrpin == -1
         error('Could not create hydrpin.txt');
     end
 
-    fprintf(hydrpin, '"diameter"=%.2f\n',);
-    fprintf(hydrpin, '"length"=%.2f\n',);
-    fprintf(hydrpin, '"handle_keys"=%.2f\n',);
-    fprintf(hydrpin, '"latch_keys_width"=%.2f\n',);
+    fprintf(hydrpin, '"pin_diameter"=%.2f\n',dimensions.d_pin);
+    fprintf(hydrpin, '"upper_pin_length"=%.2f\n',dimensions.l_pin_upper);
+    fprintf(hydrpin, '"lower_pin_length"=%.2f\n',dimensions.l_pin_lower);
+    fprintf(hydrpin, '"pin_head_diameter"=%.2f\n',dimensions.d_pin*1.4);
+    fprintf(hydrpin, '"pin_screw_diameter"=%.2f\n',dimensions.d_pin*0.6);
     fclose(hydrpin);
 
-    %-------- HYDRAULIC PIN DIMENSIONS - BOTTOM --------
-    hydrpin_top_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'hydrpin.txt');
-    hydrpin = fopen(hydrpin_filePath, 'w');
-    if hydrpin == -1
-        error('Could not create hydrpin.txt');
+    % CONNECTORS
+    hydrconnect_filePath = fullfile(basePath,'..', 'Solidworks', 'Equations', 'hydrconnect.txt');
+    hydrconnect = fopen(hydrconnect_filePath, 'w');
+    if hydrconnect == -1
+        error('Could not create hydrconnect.txt');
     end
 
-    fprintf(hydrpin, '"diameter"=%.2f\n',);
-    fprintf(hydrpin, '"length"=%.2f\n',);
-    fclose(hydrpin);
-    %}
+    fprintf(hydrconnect, '"pin_bore"=%.2f\n',dimensions.d_pin + 0.2);
+    fprintf(hydrconnect, '"top_outer_diameter"=%.2f\n',dimensions.d_pin*1.60);
+    fprintf(hydrconnect, '"bottom_height"=%.2f\n',dimensions.d_pin*1.65);
+    fprintf(hydrconnect, '"bottom_bore_height"=%.2f\n',dimensions.d_pin*1.65 - dimensions.d_pin*1.60/2);
+    fprintf(hydrconnect, '"valve_diameter"=%.2f\n',dimensions.d_valve);
+    fclose(hydrconnect);
+
 end
 
 % /***************************************/
@@ -599,11 +642,13 @@ function results = getResults(BW, H)
 
     fprintf(log, '-------- FRAME ANALYSIS --------:\n\n');
 
+    L_fr = Main.Frame_SZ(sz,1); % length of the frame legs
+
     % get support thickness
     t_s = FrameAnalysis.getSupportThickness(log, Main.n_frame, F_k, Main.E_fr, Main.getSsy(Main.Sy_fr), Main.Sy_fr, JB.od, r_b);
 
     % get leg cross-section dimensions
-    legDimensions = FrameAnalysis.getLegDimensions(log, Main.n_frame, F_k, Main.E_fr, Main.Sy_fr, Main.getSsy(Main.Sy_fr), JB.od, r_b);
+    legDimensions = FrameAnalysis.getLegDimensions(log, Main.n_frame, F_k, Main.E_fr, Main.Sy_fr, Main.getSsy(Main.Sy_fr), JB.od, r_b, L_fr);
 
     % get lip thickness
     F_lp = FrameAnalysis.getFlp(M_k, F_k, r_b);
@@ -639,7 +684,7 @@ function results = getResults(BW, H)
 
     % get hydraulic pin dimensions
     fprintf(log, '-------- HYDRAULIC PIN ANALYSIS --------:\n\n');
-    pin = HydrPin.PinDim(M_k, w_b, r_b, valve.d_best_mm/1000);
+    pin = HydrPin.PinDim(M_k, w_b, r_b, hydraulics.D_standard_mm/1000);
     fprintf(log, 'Pin diameter: %.2f mm\n', pin.diameter*1000);
     fprintf(log, 'Upper pin length: %.2f mm\n', pin.length_upper*1000);
     fprintf(log, 'Lower pin length: %.2f mm\n\n', pin.length_lower*1000);
@@ -684,6 +729,7 @@ function results = getResults(BW, H)
     fprintf(log, 'Axial Compression: Stress = %.2f MPa, FoS = %.2f\n', sigma_ax_lower, n_ax_lower);
     fprintf(log, 'Combined (Von Mises): Stress = %.2f MPa, FoS = %.2f\n\n', sigma_vm_lower, n_vm_lower);
 
+    % Structural Results
     results.D_s = Main.Shaft_SZ(sz,2)*1000;
     results.d_s = Main.Shaft_SZ(sz,3)*1000;
     results.L_s = Main.Shaft_SZ(sz,1)*1000;
@@ -701,15 +747,13 @@ function results = getResults(BW, H)
     results.w_b = w_b*1000;
     results.d_isu = JB.od*1000;
     results.t_su = t_frame*1000;
-    results.L_fr = FrameAnalysis.L_fr*1000;
+    results.L_fr = L_fr*1000;
     results.a = legDimensions.a*1000;
     results.b = t_frame*1000;
     results.t_lp = t_frame*1000;
-    results.d_valve = valve.d_best_mm;
-    results.Q = valve.Q_Lmin;
-    results.Cv = valve.Cv;
     results.n_upper_py = FoS_yield_u;
     results.n_lower_py = FoS_yield_b;
+    results.case_extrude = Main.Case_SZ(sz,1)*1000;
     
     % Upper Adapter Detailed Results
     results.upper_thread_shear = tau_s_upper;
@@ -745,9 +789,13 @@ function results = getResults(BW, H)
     results.lock_Nt_spring = lock_dims.Nt;
     results.lock_Lf_spring = lock_dims.Lf*1000;
 
+    % Hydraulic Unit Results
     results.d_pin = pin.diameter*1000;
     results.l_pin_upper = pin.length_upper*1000;
     results.l_pin_lower = pin.length_lower*1000;
+    results.d_valve = valve.d_best_mm;
+    results.Q = valve.Q_Lmin;
+    results.Cv = valve.Cv;
     results.D_cyl = hydraulics.D_standard_mm;
     results.delta_p_req = hydraulics.delta_p_req_MPa;
     results.Q_max_hyd = hydraulics.Q_max_mLs;
