@@ -139,12 +139,9 @@ end
 function displayTable = displayResults(results)
     % Create table data more explicitly to ensure consistent row counts
     varNames = {
+        'SIZE';
         'D_s'; 'd_s'; 'L_s'; 'l_s'; 'Journal bearing'; 'w_k'; 'r_b'; 'w_b'; 'd_isu'; 't_su';
-        'L_fr'; 'a'; 'b'; 't_lp'; 'd_valve'; 'Q'; 'Cv'; 'n_upper_py'; 'n_lower_py';
-        'upper_thread_shear'; 'upper_thread_FoS'; 'upper_axial_stress'; 'upper_axial_FoS'; 
-        'upper_bending_stress'; 'upper_bending_FoS'; 'upper_vm_stress'; 'upper_vm_FoS';
-        'lower_bolt_shear'; 'lower_bolt_FoS'; 'lower_bearing_stress'; 'lower_bearing_FoS';
-        'lower_axial_stress'; 'lower_axial_FoS'; 'lower_vm_stress'; 'lower_vm_FoS';
+        'L_fr'; 'a'; 'b'; 't_lp'; 'd_valve'; 'Q'; 'Cv';
         'lock_d_pin'; 'lock_w_key';
         'lock_t_latch'; 'lock_l_latch'; 'lock_w_latch';
         'lock_l_handle'; 'lock_w_handle';
@@ -154,18 +151,14 @@ function displayTable = displayResults(results)
     };
     
     descriptions = {
+        'Prosthetic size';
         'Large diameter of the shaft'; 'Small diameter of the shaft'; 'Length of large diameter section of the shaft';
         'Total length of the shaft'; 'Journal bearing specifications'; 'Width of the square key';
         'Radius of the ball'; 'Width of the ball'; 'Inner diameter of the supports'; 'Thickness of the supports';
         'Length of the frame legs'; 'Frame leg cross section, long dimension (width)';
         'Frame leg cross section, short dimension (thickness)'; 'Thickness of the lip'; 'Optimal valve diameter';
-        'Flow rate'; 'Cv value for valve'; 'Safety factor for upper pyramid adapter';
-        'Safety factor for lower pyramid adapter'; 'Upper adapter: Thread shear stress'; 'Upper adapter: Thread stripping FoS';
-        'Upper adapter: Axial compression stress'; 'Upper adapter: Axial compression FoS'; 'Upper adapter: Bending stress';
-        'Upper adapter: Bending FoS'; 'Upper adapter: Von Mises equivalent stress'; 'Upper adapter: Von Mises FoS';
-        'Lower adapter: Bolt shear stress'; 'Lower adapter: Bolt shear FoS'; 'Lower adapter: Bearing stress';
-        'Lower adapter: Bearing FoS'; 'Lower adapter: Axial compression stress'; 'Lower adapter: Axial compression FoS';
-        'Lower adapter: Von Mises equivalent stress'; 'Lower adapter: Von Mises FoS';        'lock_d_pin'; 'lock_w_key';
+        'Flow rate'; 'Cv value for valve';
+        'Diameter of lock pin'; 'Width of lock key';
         'Thicknes of lock latch'; 'Length of lock latch'; 'Width of lock latch';
         'Length of lock handle'; 'Width of lock handle';
         'Lock spring constant'; 'Lock spring diameter'; 'Lock spring coil diameter'; 'Number of coils of lock spring'; 'Free length of lock spring';
@@ -177,17 +170,12 @@ function displayTable = displayResults(results)
     };
     
     values = {
+        sprintf('%s', results.size);
         round(results.D_s,2); round(results.d_s,2); round(results.L_s,2); round(results.l_s,2);
         sprintf('ID: %.2f, OD: %.2f, Length: %.2f, Part no. %s', results.JBid, results.JBod, results.JBl, results.JBpart);
         round(results.w_k,2); round(results.r_b,2); round(results.w_b,2); round(results.d_isu,2); results.t_su;
-        round(results.L_fr,2); results.a; results.b; results.t_lp; results.d_valve; results.Q; results.Cv;
-        results.n_upper_py; results.n_lower_py;
-        round(results.upper_thread_shear, 2); round(results.upper_thread_FoS, 2); round(results.upper_axial_stress, 2);
-        round(results.upper_axial_FoS, 2); round(results.upper_bending_stress, 2); round(results.upper_bending_FoS, 2);
-        round(results.upper_vm_stress, 2); round(results.upper_vm_FoS, 2);
-        round(results.lower_bolt_shear, 2); round(results.lower_bolt_FoS, 2); round(results.lower_bearing_stress, 2);
-        round(results.lower_bearing_FoS, 2); round(results.lower_axial_stress, 2); round(results.lower_axial_FoS, 2);
-        round(results.lower_vm_stress, 2); round(results.lower_vm_FoS, 2);
+        round(results.L_fr,2); results.a; results.b; results.t_lp;
+        results.d_valve; results.Q; results.Cv;
         round(results.lock_d_pin, 2); round(results.lock_w_key, 2);
         round(results.lock_t_latch, 2); round(results.lock_l_latch, 2); round(results.lock_w_latch, 2);
         round(results.lock_l_handle, 2); round(results.lock_w_handle, 2);
@@ -198,10 +186,11 @@ function displayTable = displayResults(results)
     };
 
     units = {
-        'mm'; 'mm'; 'mm'; 'mm'; 'mm (diameters and length)'; 'mm'; 'mm'; 'mm'; 'mm'; 'mm';
-        'mm'; 'mm'; 'mm'; 'mm'; 'mm'; 'L/min'; 'N/A'; 'N/A'; 'N/A';
-        'MPa'; 'N/A'; 'MPa'; 'N/A'; 'MPa'; 'N/A'; 'MPa'; 'N/A';
-        'MPa'; 'N/A'; 'MPa'; 'N/A'; 'MPa'; 'N/A'; 'MPa'; 'N/A';
+        ' ';
+        'mm'; 'mm'; 'mm'; 'mm'; 'mm (diameters and length)';
+        'mm'; 'mm'; 'mm'; 'mm'; 'mm';
+        'mm'; 'mm'; 'mm'; 'mm';
+        'mm';'L/min'; 'N/A';
         'mm'; 'mm';
         'mm'; 'mm'; 'mm';
         'mm'; 'mm';
@@ -583,7 +572,7 @@ function results = getResults(BW, H)
             end
         end
 
-        fprintf(log, 'These diameters correspond to size %i:\n\n', sz);
+        fprintf(log, 'These diameters correspond to size %i\n\n', sz);
 
         % get journal bearing specs
         fprintf(log, 'Journal bearing for inner diameter of %.2fmm:\n', sized_d*1000);
@@ -663,7 +652,7 @@ function results = getResults(BW, H)
 
     % get lip thickness
     F_lp = FrameAnalysis.getFlp(M_k, F_k, r_b);
-    t_lp = FrameAnalysis.getLipThicknessComp(log, F_lp, FrameAnalysis.getSigma(Main.Sy_fr, Main.n_frame), w_b);
+    t_lp = FrameAnalysis.getLipThicknessComp(log, F_lp, FrameAnalysis.getSigma(Main.Sy_fr, Main.n_frame), w_b, Main.n_frame);
 
     % get final frame thickness
     t_frame = FrameAnalysis.t_frame(log, t_s, legDimensions.b, t_lp);
@@ -695,7 +684,8 @@ function results = getResults(BW, H)
 
     % get hydraulic pin dimensions
     fprintf(log, '-------- HYDRAULIC PIN ANALYSIS --------:\n\n');
-    pin = HydrPin.PinDim(M_k, w_b, r_b, hydraulics.D_standard_mm/1000);
+    pin = HydrPin.PinDim(log, M_k, w_b, r_b, hydraulics.D_standard_mm/1000);
+    fprintf(log, 'Final hydraulic pin dimensions:\n');
     fprintf(log, 'Pin diameter: %.2f mm\n', pin.diameter*1000);
     fprintf(log, 'Upper pin length: %.2f mm\n', pin.length_upper*1000);
     fprintf(log, 'Lower pin length: %.2f mm\n\n', pin.length_lower*1000);
@@ -739,6 +729,18 @@ function results = getResults(BW, H)
     fprintf(log, 'Bolt Bearing: Stress = %.2f MPa, FoS = %.2f, Pass = %d\n', sigma_bear_lower, n_bear_lower, bear_pass);
     fprintf(log, 'Axial Compression: Stress = %.2f MPa, FoS = %.2f\n', sigma_ax_lower, n_ax_lower);
     fprintf(log, 'Combined (Von Mises): Stress = %.2f MPa, FoS = %.2f\n\n', sigma_vm_lower, n_vm_lower);
+
+    % Display Final Size
+    if (sz == 1)
+        size = 'S';
+    elseif (sz == 2)
+        size = 'M';
+    elseif (sz == 3)
+        size = 'L';
+    else
+        size = 'XL';
+    end
+    results.size = size;
 
     % Structural Results
     results.D_s = Main.Shaft_SZ(sz,2)*1000;

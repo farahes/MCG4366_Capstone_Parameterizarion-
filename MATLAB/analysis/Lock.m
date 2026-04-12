@@ -164,7 +164,7 @@ end
 
     function LockDim = LockDim(log, m_f, m_ll, d_f, d_ll, M_k, r_ball)
 
-        fprintf(log, 'Minimum set safety factor: %d\n\n', Lock.n);
+        fprintf(log, 'Set safety factor: %d\n\n', Lock.n);
         fprintf(log, 'Limiting lock dimensions:\n');
        
         % Limiting lock dimensions
