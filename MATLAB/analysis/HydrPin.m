@@ -70,37 +70,53 @@ methods (Static)
     %
     % The force F is multiplied by 1.5x to cover higher load cases.
     % Pin diameter starts at 10 mm and is incremented by 1 mm until all FoS >= n.
-    function PinDim = PinDim(M_k, w_ball, r_ball, d_hydraulic)
+    function PinDim = PinDim(log, M_k, w_ball, r_ball, d_hydraulic)
 
         % Convert knee moment to pin shear force; 1.5x dynamic load factor
         F = HydrPin.F_max(M_k, r_ball)*1.5;
+        fprintf(log, 'Shear force on the pin due to knee moment (multiplied by 1.5x to consider higher loads):\n');
+        fprintf(log, 'F_shear: %.2f N\n', F);
 
         % -------- UPPER PIN DIMENSIONS --------
         % the upper pin will be the the length of the ball thickness
         % (see drawings)
+        fprintf(log, '\nLength dimensions of the upper hydraulic pin:\n');
 
         b_upper = (d_hydraulic + 0.004);    % 2 mm buffer of space on both sides of the hydraulic
         a_upper = (w_ball - b_upper)/2;
+        fprintf(log, 'b (length of pin between supports): %.2f mm\n', b_upper*1000);
+        fprintf(log, 'a (length of pin supported): %.2f mm\n', a_upper*1000);
 
         M_upper = (F/2)*((a_upper/2) + (b_upper/2));
+        fprintf(log, 'Maximum moment on the upper pin: %.2f Nm\n', M_upper);
 
         % -------- LOWER PIN DIMENSIONS --------
         % the lower pin will be supported by two supports on the base of
         % the frame
+        fprintf(log, '\nLength dimensions of the lower hyradulic pin:\n');
 
         b_lower = (0.75*d_hydraulic + 0.004);    % 2 mm buffer of space on both sides of the hydraulic
         a_lower = 0.007;    % set at 7 mm (CHANGEABLE)
+        fprintf(log, 'b (length of pin between supports): %.2f mm\n', b_lower*1000);
+        fprintf(log, 'a (length of pin supported): %.2f mm\n', a_lower*1000);
 
         M_lower = (F/2)*((a_lower/2) + (b_lower/2));
+        fprintf(log, 'Maximum moment on the lower pin: %.2f Nm\n', M_lower);
 
         % initial guess for pin diameter [m]
-        d_pin = 10e-3; 
+        d_pin = 10e-3;
+        fprintf(log, '\nInitial guess for pin diameter: %.2f mm\n', d_pin*1000);
 
         % Iterate over pin sizes until safety factors are met
         n_bending_upper = 0;
         n_bending_lower = 0;
         n_shear = 0;
         while (n_bending_upper < HydrPin.n) || (n_bending_lower < HydrPin.n) || (n_shear < HydrPin.n)
+            fprintf(log, 'Safety factors of n = %.2f not met!\n', HydrPin.n);
+            fprintf(log, 'pin diameter: %.2f mm\n', d_pin*1000);
+            fprintf(log, 'n_bending_upper: %.2f\n', n_bending_upper);
+            fprintf(log, 'n_bending_lower: %.2f\n', n_bending_lower);
+            fprintf(log, 'n_shear: %.2f\n', n_shear);
 
             % -------- UPPER PIN STRESSES --------
             sigma_max_upper = HydrPin.BendingStress(M_upper, d_pin);    % maximum bending stress at edges
@@ -116,12 +132,14 @@ methods (Static)
             tau_max = max([tau_shear_NA, tau_shear_edge_upper, tau_shear_edge_lower]);
             n_shear = HydrPin.Ssy()/tau_max;
 
-            % Test failure by fatigue (NOT FINISHED FOR PARAMETERIZATION)
-
             if (n_bending_upper < HydrPin.n) || (n_bending_lower < HydrPin.n) || (n_shear < HydrPin.n)
                 d_pin = d_pin + 0.001; % increment diameter of the pin by 1 mm
             end
         end
+        fprintf(log, 'Safety factors of n = %.2f are met!\n', HydrPin.n);
+        fprintf(log, 'n_bending_upper: %.2f\n', n_bending_upper);
+        fprintf(log, 'n_bending_lower: %.2f\n', n_bending_lower);
+        fprintf(log, 'n_shear: %.2f\n\n', n_shear);
 
         % Return final pin dimensions
         PinDim.length_upper = w_ball;

@@ -91,7 +91,7 @@ end
 
 function t_su = getSupportThickness(log, n, JRF, E, Ssy, Sy, d_isu, r_b)
 
-    fprintf(log, 'Limiting Support Thicknesses:\n');
+    fprintf(log, 'Limiting Support Thicknesses for n = %.2f:\n', n);
     % Buckling
     fprintf(log, 'Buckling\n');
     t1 = FrameAnalysis.gettsuBuckling(log, n, JRF, E, d_isu, r_b);
@@ -228,7 +228,7 @@ end
 % REQUIRED LEG DIMENSIONS
 function legDimensions = getLegDimensions(log, n, JRF, E, Sy, Ssy, d_isu, r_b, L_fr)
 
-    fprintf(log, 'Limiting Leg Dimensions:\n');
+    fprintf(log, 'Limiting Leg Dimensions for n = %.2f:\n', n);
 
     legDimensions.a = FrameAnalysis.a;
     fprintf(log, 'For a leg width, a = %.2f mm\n', legDimensions.a*1000);
@@ -279,10 +279,10 @@ end
 
 % COMPRESSION
 % Minimum lip thickness from compressive stress:  t = F_lp / (sigma_allowed * w_lp)
-function t_lp = getLipThicknessComp(log, F_lp, sigma_allowed, w_lp)
+function t_lp = getLipThicknessComp(log, F_lp, sigma_allowed, w_lp, n)
     t_lp = F_lp/(sigma_allowed*w_lp);
 
-    fprintf(log, '\nLip Thickness:\n');
+    fprintf(log, '\nLimiting Lip Thickness for n = %.2f:\n', n);
     fprintf(log, 'F_lp: %.2f N\n', F_lp);
     fprintf(log, 't_lp: %.2f mm\n\n', t_lp*1000);
 end
@@ -299,7 +299,7 @@ function frame_thickness = t_frame(log, t_su, b, t_lp)
     limiting_frame_thickness = max([t_su, b, t_lp]);
     frame_thickness = ceil(limiting_frame_thickness*1000)/1000;   % round up to the nearest frame thickness
 
-    fprintf(log, 'Final frame thickness: t_frame = %.2f mm\n\n', frame_thickness*1000);
+    fprintf(log, 'Final frame thickness:\nt_frame = %.2f mm\n\n', frame_thickness*1000);
 end
 
 end

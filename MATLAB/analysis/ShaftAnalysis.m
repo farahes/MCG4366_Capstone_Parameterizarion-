@@ -63,37 +63,53 @@ end
 % ASME-Elliptic fatigue criterion — alternating load amplitude term.
 % Combines alternating bending Ma and alternating torque Ta,
 % weighted by their respective fatigue stress concentration factors.
-function A = getA(Kf, Ma, Kfs, Ta)
+function A = getA(log, Kf, Ma, Kfs, Ta)
     A = sqrt(4*(Kf*Ma)^2 + 3*(Kfs*Ta)^2);
+    fprintf(log, 'Kf = %.2f \n', Kf);
+    fprintf(log, 'Kfs = %.2f \n', Kfs);
+    fprintf(log, 'Alternating moment = %.2f Nm\n', Ma);
+    fprintf(log, 'Alternating torque = %.2f Nm\n', Ta);
+    fprintf(log, 'A = %.2f (Nm)^2\n', A);
 end
 
 % ASME-Elliptic fatigue criterion — mean load term.
 % Combines mean bending Mm and mean torque Tm components.
-function B = getB(Kf, Mm, Kfs, Tm)
+function B = getB(log, Kf, Mm, Kfs, Tm)
     B = Kf*Mm + sqrt((Kf*Mm)^2 + (Kfs*Tm)^2);
+    fprintf(log, 'Kf = %.2f \n', Kf);
+    fprintf(log, 'Kfs = %.2f \n', Kfs);
+    fprintf(log, 'Mean moment = %.2f Nm\n', Mm);
+    fprintf(log, 'Mean torque = %.2f Nm\n', Tm);
+    fprintf(log, 'B = %.2f (Nm)^2\n', B);
 end
 
 % Minimum shaft diameter from the ASME-Elliptic fatigue failure criterion.
 % Solves:  d^3 = (16*n/pi) * (A/Sn + B/Su)
 % where Sn is the corrected endurance limit and Su is the ultimate tensile strength.
-function d = getShaftDiameterFatigue(n, A, B, Sn, Su)
+function d = getShaftDiameterFatigue(log, n, A, B, Sn, Su)
     d = (16*n*(A/Sn + B/Su)/pi())^(1/3);
+    fprintf(log, 'Sn = %.2f Pa\n', Sn);
+    fprintf(log, 'Su = %.2f Pa\n', Su);
 end
 
 % STATIC BENDING OF SHAFT
 % Minimum diameter from static bending:  d^3 = 32*M / (pi * sigma_allowed)
 % sigma_allowed = Sy / n  (yield stress with safety factor).
-function d = getShaftDiameterBending(n, Sy, M)
+function d = getShaftDiameterBending(log, n, Sy, M)
     sigma = Sy/n;
     d = (32*M/(pi()*sigma))^(1/3);
+    fprintf(log, 'Bending moment = %.2f Nm\n', M);
+    fprintf(log, 'Allowable bending stress = %.2f Pa\n', sigma);
 end
 
 % STATIC SHEAR OF SHAFT
 % Minimum diameter from transverse shear:  d^3 = 16*V / (3*pi * tau_allowed)
 % Based on maximum shear stress at the neutral axis of a solid circular section (= 4V/3A).
-function d = getShaftDiameterShear(n, Ssy, V)
+function d = getShaftDiameterShear(log, n, Ssy, V)
     tau = Ssy/n;
     d = (16*V/(3*pi()*tau))^(1/3);
+    fprintf(log, 'Shear force = %.2f N\n', V);
+    fprintf(log, 'Allowable shear stress = %.2f Pa\n', tau);
 end
 
 % TORSIONAL DEFLECTION CHECK
@@ -115,39 +131,42 @@ end
 % The larger value from each pair of checks is returned as the required diameter.
 function shaftDiameter = getShaftDiameter(log, n, Su, Sy, Ssy, JRFx, JRFy, M_k, L_s)
 
-    fprintf(log, 'Limiting Shaft Diameters for n = %.2f:\n', n);
+    fprintf(log, 'Limiting Shaft Diameters for n = %.2f:\n\n', n);
 
     % Determine limiting D_s (large-diameter section at keyway/bending region)
     % Fatigue
     D1 = ShaftAnalysis.getShaftDiameterFatigue( ...
+        log, ...
         n, ...
-        ShaftAnalysis.getA(ShaftAnalysis.Kf_k, ShaftAnalysis.getM(L_s, ShaftAnalysis.getV(JRFx, JRFy)), ShaftAnalysis.Kf_k, ShaftAnalysis.getT(M_k)), ...
-        ShaftAnalysis.getB(ShaftAnalysis.Kf_k, 0, ShaftAnalysis.Kf_k, 0), ...
+        ShaftAnalysis.getA(log, ShaftAnalysis.Kf_k, ShaftAnalysis.getM(L_s, ShaftAnalysis.getV(JRFx, JRFy)), ShaftAnalysis.Kf_k, ShaftAnalysis.getT(M_k)), ...
+        ShaftAnalysis.getB(log, ShaftAnalysis.Kf_k, 0, ShaftAnalysis.Kf_k, 0), ...
         ShaftAnalysis.getSn(Su), ...
         Su ...
         );
-    fprintf(log, 'D_s (fatigue loading) = %.2f mm\n', D1*1000);
+    fprintf(log, 'D_s (fatigue loading) = %.2f mm\n\n', D1*1000);
     % Pure bending
-    D2 = ShaftAnalysis.getShaftDiameterBending(n, Sy, ShaftAnalysis.getM(L_s, ShaftAnalysis.getV(JRFx, JRFy)));
-    fprintf(log, 'D_s (bending stress) = %.2f mm\n', D2*1000);
+    D2 = ShaftAnalysis.getShaftDiameterBending(log, n, Sy, ShaftAnalysis.getM(L_s, ShaftAnalysis.getV(JRFx, JRFy)));
+    fprintf(log, 'D_s (bending stress) = %.2f mm\n\n', D2*1000);
 
     % Determine limiting d_s
     % Fatigue
     d1 = ShaftAnalysis.getShaftDiameterFatigue( ...
+        log, ...
         n, ...
-        ShaftAnalysis.getA(ShaftAnalysis.getKf(ShaftAnalysis.q, ShaftAnalysis.Kt_b), 0, ShaftAnalysis.getKf(ShaftAnalysis.qs, ShaftAnalysis.Kt_t), ShaftAnalysis.getT(M_k)), ...
-        ShaftAnalysis.getB(ShaftAnalysis.getKf(ShaftAnalysis.q, ShaftAnalysis.Kt_b), 0, ShaftAnalysis.getKf(ShaftAnalysis.qs, ShaftAnalysis.Kt_t), 0), ...
+        ShaftAnalysis.getA(log, ShaftAnalysis.getKf(ShaftAnalysis.q, ShaftAnalysis.Kt_b), 0, ShaftAnalysis.getKf(ShaftAnalysis.qs, ShaftAnalysis.Kt_t), ShaftAnalysis.getT(M_k)), ...
+        ShaftAnalysis.getB(log, ShaftAnalysis.getKf(ShaftAnalysis.q, ShaftAnalysis.Kt_b), 0, ShaftAnalysis.getKf(ShaftAnalysis.qs, ShaftAnalysis.Kt_t), 0), ...
         ShaftAnalysis.getSn(Su), ...
         Su ...
         );
-    fprintf(log, 'd_s (fatigue loading) = %.2f mm\n', d1*1000);
+    fprintf(log, 'd_s (fatigue loading) = %.2f mm\n\n', d1*1000);
     % Static shear
     d2 = ShaftAnalysis.getShaftDiameterShear( ...
+        log, ...
         n, ...
         Ssy, ...
         ShaftAnalysis.getV(JRFx, JRFy) ...
         );
-    fprintf(log, 'd_s (shear loading) = %.2f mm\n', d2*1000);
+    fprintf(log, 'd_s (shear loading) = %.2f mm\n\n', d2*1000);
 
     shaftDiameter.D = max([D1, D2]);
     shaftDiameter.d = max([d1, d2]);

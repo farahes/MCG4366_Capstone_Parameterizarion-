@@ -3,24 +3,57 @@
 /***************************************/
 
 Patient body weight: 91.00 kg
-Patient height: 1.00 m
+Patient height: 1.60 m
 
 Maximum Joint Reaction Force and Moment:
 JRF = 930.62 N
 JRF_x = -101.53 N
 JRF_y = -925.07 N
-JRM = 59.70 Nm
+JRM = 60.52 Nm
 
 -------- SHAFT ANALYSIS --------:
 
 Limiting Shaft Diameters for n = 2.50:
-D_s (fatigue loading) = 21.42 mm
+
+Kf = 1.30 
+Kfs = 1.30 
+Alternating moment = 13.96 Nm
+Alternating torque = 60.52 Nm
+A = 141.02 (Nm)^2
+Kf = 1.30 
+Kfs = 1.30 
+Mean moment = 0.00 Nm
+Mean torque = 0.00 Nm
+B = 0.00 (Nm)^2
+Sn = 180431550.00 Pa
+Su = 745000000.00 Pa
+D_s (fatigue loading) = 21.51 mm
+
+Bending moment = 13.96 Nm
+Allowable bending stress = 248000000.00 Pa
 D_s (bending stress) = 8.31 mm
-d_s (fatigue loading) = 23.15 mm
+
+Kf = 2.62 
+Kfs = 1.70 
+Alternating moment = 0.00 Nm
+Alternating torque = 60.52 Nm
+A = 178.20 (Nm)^2
+Kf = 2.62 
+Kfs = 1.70 
+Mean moment = 0.00 Nm
+Mean torque = 0.00 Nm
+B = 0.00 (Nm)^2
+Sn = 180431550.00 Pa
+Su = 745000000.00 Pa
+d_s (fatigue loading) = 23.25 mm
+
+Shear force = 465.31 N
+Allowable shear stress = 143840000.00 Pa
 d_s (shear loading) = 17.64 mm
-Limiting d_s = 23.15 mm
-Limiting D_s = 21.42 mm
-These diameters correspond to size 4:
+
+Limiting d_s = 23.25 mm
+Limiting D_s = 21.51 mm
+These diameters correspond to size 4
 
 Journal bearing for inner diameter of 25.00mm:
 ID: 25.00mm
@@ -55,7 +88,7 @@ Ball width: 63.00 mm
 
 -------- FRAME ANALYSIS --------:
 
-Limiting Support Thicknesses:
+Limiting Support Thicknesses for n = 2.00:
 Buckling
 Pcr = 930.62 N
 H_su = 19.28 mm
@@ -68,7 +101,7 @@ sigma_allowed: 138000000.00 Pa
 t_su (bending XY): 0.87 mm
 t_su (bending YZ): 3.61 mm
 
-Limiting Leg Dimensions:
+Limiting Leg Dimensions for n = 2.00:
 For a leg width, a = 15.00 mm
 Buckling
 Pcr: 465.31 N
@@ -83,11 +116,12 @@ I_allowed: 32528.76 mm^4
 b: 0.229745 mm
 Final limiting b: 0.229745 mm
 
-Lip Thickness:
-F_lp: 2257.25 N
+Limiting Lip Thickness for n = 2.00:
+F_lp: 2275.54 N
 t_lp: 0.26 mm
 
-Final frame thickness: t_frame = 4.00 mm
+Final frame thickness:
+t_frame = 4.00 mm
 
 -------- HYDRAULIC UNIT ANALYSIS --------:
 
@@ -108,31 +142,76 @@ Cylinder max length:     66.32 mm
 
 -------- HYDRAULIC PIN ANALYSIS --------:
 
+Shear force on the pin due to knee moment (multiplied by 1.5x to consider higher loads):
+F_shear: 2521.72 N
+
+Length dimensions of the upper hydraulic pin:
+b (length of pin between supports): 24.00 mm
+a (length of pin supported): 19.50 mm
+Maximum moment on the upper pin: 27.42 Nm
+
+Length dimensions of the lower hyradulic pin:
+b (length of pin between supports): 19.00 mm
+a (length of pin supported): 7.00 mm
+Maximum moment on the lower pin: 16.39 Nm
+
+Initial guess for pin diameter: 10.00 mm
+Safety factors of n = 2.00 not met!
+pin diameter: 10.00 mm
+n_bending_upper: 0.00
+n_bending_lower: 0.00
+n_shear: 0.00
+Safety factors of n = 2.00 not met!
+pin diameter: 11.00 mm
+n_bending_upper: 0.77
+n_bending_lower: 1.29
+n_shear: 0.89
+Safety factors of n = 2.00 not met!
+pin diameter: 12.00 mm
+n_bending_upper: 1.02
+n_bending_lower: 1.71
+n_shear: 1.18
+Safety factors of n = 2.00 not met!
+pin diameter: 13.00 mm
+n_bending_upper: 1.33
+n_bending_lower: 2.23
+n_shear: 1.53
+Safety factors of n = 2.00 not met!
+pin diameter: 14.00 mm
+n_bending_upper: 1.69
+n_bending_lower: 2.83
+n_shear: 1.95
+Safety factors of n = 2.00 are met!
+n_bending_upper: 2.11
+n_bending_lower: 3.53
+n_shear: 2.44
+
+Final hydraulic pin dimensions:
 Pin diameter: 14.00 mm
 Upper pin length: 63.00 mm
 Lower pin length: 33.00 mm
 
 -------- LOCK ANALYSIS --------:
 
-Minimum set safety factor: 4
+Set safety factor: 4
 
 Limiting lock dimensions:
 Torque to engage/disengage lock: 0.378 Nm
 Spring constant: 2100.00 N/m
-Maximum force on the latch: 947.59 N
+Maximum force on the latch: 960.66 N
 Maximum allowable shear stress: 39813000.00 Pa
 Maximum allowable bending stress: 69000000.00 Pa
 Set latch thickness: 15.00 mm
-Minimum width of pin keys: 0.78 mm
-Limiting pin diameter due to shear: 5.50 mm
+Minimum width of pin keys: 0.79 mm
+Limiting pin diameter due to shear: 5.54 mm
 Limiting pin diameter due to torsion: 3.64 mm
-Limiting pin diameter due to bending: 11.63 mm
-Minimum pin diameter: 11.63 mm
+Limiting pin diameter due to bending: 11.68 mm
+Minimum pin diameter: 11.68 mm
 
 Spring dimensions:
-D (mean spring diameter): 8.72 mm
+D (mean spring diameter): 8.76 mm
 d (wire diameter): 1.00 mm
-C:    8.72
+C:    8.76
 C within acceptable bounds of 4-12
 Ks: 1.06
 Kw: 1.17
@@ -141,23 +220,23 @@ Total number of coils, N_t: 3
 Solid length of the spring, L_s: 3.00 mm
 Static loading condition:
 Allowable static stress: 990000000.00 Pa
-Calculated static stress: 295949677.38 Pa
+Calculated static stress: 297230149.39 Pa
 Static condition is met!
 
 Spring safety factors:
-Goodman, n = 4.26
-Langer, n = 3.57
+Goodman, n = 4.25
+Langer, n = 3.55
 
 Final lock dimensions:
-Width of pin keys, w_key: 2.91 mm
-Pin diameter, d_pin: 11.63 mm
+Width of pin keys, w_key: 2.92 mm
+Pin diameter, d_pin: 11.68 mm
 Latch thickness, t_latch: 15.00 mm
 Free length of spring: 11.00 mm
-Length of the latch, l_latch: 11.18 mm
-Width of the latch, w_latch: 23.26 mm
+Length of the latch, l_latch: 11.16 mm
+Width of the latch, w_latch: 23.37 mm
 Length of the handle, l_handle: 30.00 mm
-Width of the handle, w_handle: 23.26 mm
-Spring diameter, D_spring: 8.72 mm
+Width of the handle, w_handle: 23.37 mm
+Spring diameter, D_spring: 8.76 mm
 Coil diameter, d_spring: 1.00 mm
 Number of coils, Nt: 3 mm
 
