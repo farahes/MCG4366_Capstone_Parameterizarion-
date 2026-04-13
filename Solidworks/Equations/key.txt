@@ -1,2 +1,2 @@
-"width_key"=7.25
+"width_key"=6.50
 "length_key"=62.50

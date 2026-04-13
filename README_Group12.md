@@ -23,13 +23,13 @@
 
 - `Solidworks/`
   - `Equations/`: text equation files used to parameterize SolidWorks parts.
+  - `Parts/`: all SolidWorks part and assembly files.
+    - `G12_CompleteAssembly`: Main assembly file.
+  - `Drawings/`: all SolidWorks drawing files.
 
 ## What Gets Populated
 - `Solidworks/Equations/`
   - Populated/updated with generated dimension files after running the analysis, including:
-  - `ball.txt`, `ecase_rear.txt`, `ecase_side.txt`, `frame.txt`, `journalbearing.txt`, `key.txt`,
-    `lock_handle.txt`, `lock_latch.txt`, `lock_pin.txt`, `lock_pin_screw.txt`,
-    `lock_spring.txt`, `lock_spring_screw.txt`, `retainingring.txt`, `shaft.txt`.
 
 - `Log/`
   - `group12_LOG.txt` is generated/updated with the full run log.
