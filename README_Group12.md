@@ -2,9 +2,11 @@
 
 ## How To Run The Code
 1. Open MATLAB.
-2. Open and run `MATLAB/Main.m`.
-3. In the app, enter patient body weight and height, then click **Generate**.
-4. The app will compute dimensions, update the table/plots/log tab, and write output files.
+2. Open `MATLAB/Main.m`.
+3. Click 'Add to path' if the prompt requests.
+4. Select 'Run' to run the gui.
+5. In the app, enter patient body weight and height, then click **Generate**.
+6. The app will compute dimensions, update the table/plots/log tab, and write output files.
 
 ## Folder Structure
 - `Log/`
