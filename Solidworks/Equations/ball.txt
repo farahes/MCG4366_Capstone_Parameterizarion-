@@ -11,8 +11,8 @@
 "hydraulic_slot_width"=12.00
 "hydraulic_slot_diameter"=23.10
 "hydraulic_slot_half_diameter"=18.80
-"latch_length"=11.36
-"latch_width"=23.57
+"latch_length"=11.33
+"latch_width"=23.67
 "latch_thickness"=15.20
 "outer_diameter"=98.50
 "leg_length"=127.00

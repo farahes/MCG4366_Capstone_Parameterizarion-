@@ -15,8 +15,8 @@
 "hydraulic_pin_outer_diameter"=22.40
 "hydraulic_pin_connection_height"=23.10
 "hydraulic_pin_bore_height"=11.90
-"latch_length"=11.36
-"latch_width"=23.57
-"lock_extrusion"=23.37
-"lock_bore"=11.88
+"latch_length"=11.33
+"latch_width"=23.67
+"lock_extrusion"=23.47
+"lock_bore"=11.93
 "lock_extrusion_thickness"=8.80

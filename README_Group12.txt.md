@@ -1,0 +1,43 @@
+# MCG4366 Capstone Parameterization
+
+## How To Run The Code
+1. Open MATLAB.
+2. Open `MATLAB/Main.m`.
+3. Click 'Add to path' if the prompt requests.
+4. Select 'Run' to run the gui.
+5. In the app, enter patient body weight and height, then click **Generate**.
+6. The app will compute dimensions, update the table/plots/log tab, and write output files.
+
+## Folder Structure
+- `Log/`
+  - Contains the generated analysis log file: `group12_LOG.txt`.
+
+- `MATLAB/`
+  - Main MATLAB project code.
+  - `Main.m`: entry point that launches the GUI and runs the full analysis pipeline.
+  - `Parameterization.prj`: MATLAB project file.
+  - `analysis/`: analysis modules (joint reaction force, shaft/frame/hydraulic/lock calculations, plots).
+  - `components/`: component-level sizing and support classes.
+  - `data/`: input CSV datasets used by the analysis.
+  - `gui/`: App Designer app and GUI launch helper.
+  - `logs/`: internal analysis logs such as `JRFLogFile.txt`.
+  - `resources/project/`: MATLAB project metadata files.
+
+- `Solidworks/`
+  - `Equations/`: text equation files used to parameterize SolidWorks parts.
+  - `Parts/`: all SolidWorks part and assembly files.
+    - `G12_CompleteAssembly`: Main assembly file.
+  - `Drawings/`: all SolidWorks drawing files.
+
+## What Gets Populated
+- `Solidworks/Equations/`
+  - Populated/updated with generated dimension files after running the analysis, including:
+
+- `Log/`
+  - `group12_LOG.txt` is generated/updated with the full run log.
+
+- `MATLAB/logs/`
+  - `JRFLogFile.txt` is generated/updated by the joint reaction force analysis.
+
+## Purpose
+Parameterize our design in SolidWorks by taking in the user height and weight.

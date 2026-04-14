@@ -6,9 +6,9 @@
 "support_diameter"=30.00
 "frame_inner_diameter"=90.50
 "frame_support_thickness"=4.00
-"latch_length"=11.36
-"latch_width"=23.57
-"lock_extrusion"=23.37
+"latch_length"=11.33
+"latch_width"=23.67
+"lock_extrusion"=23.47
 "side_case_width"=44.96
 "rear_case_width"=43.00
 "frame_leg_width"=15.00
